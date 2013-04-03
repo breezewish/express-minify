@@ -1,0 +1,24 @@
+{
+    "name": "express-minify",
+    "author": "Breezewish",
+    "description": "express-minify is an express middleware that automatically miniy your javascript and css files.",
+    "homepage": "https://github.com/breeswish/express-minify",
+    "version": "0.0.1",
+    "main": "minify.js",
+    "keywords": [
+        "uglify",
+        "minify",
+        "express"
+    ],
+    "engines": {
+        "node": ">=0.4.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/breeswish/express-minify.git"
+    },
+    "dependencies": {
+        "uglifycss": "~0.0.5",
+        "uglify-js": "~2.2.5"
+    }
+}
