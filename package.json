@@ -1,7 +1,7 @@
 {
     "name": "express-minify",
     "author": "Breezewish",
-    "description": "express-minify is an express middleware that automatically miniy your javascript and css files.",
+    "description": "express-minify is an express middleware that automatically minify your javascript and css files.",
     "homepage": "https://github.com/breeswish/express-minify",
     "version": "0.0.1",
     "main": "minify.js",

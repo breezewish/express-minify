@@ -1,7 +1,7 @@
 express-minify
 ==============
 
-express-minify is an express middleware that **automatically** miniy and **cache** your javascript and css files.
+express-minify is an express middleware that **automatically** minify and **cache** your javascript and css files.
 
 # How it works
 
@@ -45,7 +45,7 @@ var minify = require('express-minify');
 app.use(minify(__dirname + '/static', {cacheFile: __dirname + '/cache.json'}));
 ```
 
-## Options
+## Options:
 
 - `suffix`: the suffix of the minized files.
 
@@ -65,7 +65,7 @@ app.use(minify(__dirname + '/static', {cacheFile: __dirname + '/cache.json'}));
 
 # Example
 
-## Work with express static
+## Working with express static:
 
 ```javascript
 var minify = require('express-minify');
@@ -78,7 +78,7 @@ app.use(express.static(__dirname + '/static'));
 app.listen(8080);
 ```
 
-## Work with gzip
+## Working with gzip:
 
 ```javascript
 var minify = require('express-minify');
