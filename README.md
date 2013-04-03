@@ -11,17 +11,17 @@ For example, when requesting `/example.css` (assume that our static directory is
 
 2. **If there is no cache available or the cache is out of date:**
 
-   2.1.1 Minify `/home/www/static/example.css`
+   2.1 Minify `/home/www/static/example.css`
    
-   2.1.2 Save to `/home/www/static/example.css.minify.css`
+   2.2 Save to `/home/www/static/example.css.minify.css`
    
-   2.1.3 Update the modification time in the cache
+   2.3 Update the modification time in the cache
    
-   2.1.4 Rewrite the request to `/example.css.minify.css`
+   2.4 Rewrite the request to `/example.css.minify.css`
 
 3. **If matches:**
 
-   2.2.1 Rewrite the request to `/example.css.minify.css`
+   3.1 Rewrite the request to `/example.css.minify.css`
 
 4. Next middleware will handle the request of `/example.css.minify.css`.
 
