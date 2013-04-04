@@ -3,185 +3,232 @@ var
 	path = require('path'),
 	uglifyjs = require('uglify-js'),
 	uglifycss = require('uglifycss'),
-	parse = require('url').parse
+	crypto = require('crypto')
 ;
 
-function parseUrl(req)
+var
+	minified_hash = {},
+	memCache = {}
+;
+
+var
+	TYPE_TEXT = 0,
+	TYPE_JS = 1,
+	TYPE_CSS = 2
+;
+
+function minifyIt(type, content)
 {
-	var parsed = req._parsedUrl;
-	
-	if (parsed && parsed.href == req.url)
-		return parsed;
-	else
-		return req._parsedUrl = parse(req.url);
+	switch(type)
+	{
+		case TYPE_JS:
+			return uglifyjs.minify(content, {fromString: true}).code;
+			break;
+		case TYPE_CSS:
+			return uglifycss.processString(content, uglifycss.defaultOptions);
+			break;
+		default:
+			return content;
+			break;
+	}
 }
 
-function getExtension(filename)
+function cacheGetFile(hash, callback)
 {
-    var i = filename.lastIndexOf('.');
-    return (i < 0) ? '' : filename.substr(i);
-}
-
-function deserializeCache(filepath, callback)
-{
-	if (typeof callback !== 'function')
+	if (typeof callback != 'function')
 		return;
-	
+
+	var filepath = this;
+
 	fs.readFile
 	(
-		filepath,
+		filepath + hash,
 		{ encoding: 'utf8' },
-		function(_err, data)
+		function(err, data)
 		{
-			var obj = {};
-			
-			//file not exists, etc.
-			if (_err)
-				return callback(_err, obj);
-			
-			try
+			if (err)
 			{
-				obj = JSON.parse(data);
-			}
-			catch(err)
-			{
-				//JSON parsing failed
-				_err = err;
+				callback(err);
+				return;
 			}
 			
-			return callback(_err, obj);
+			callback(null, data);
 		}
 	);
-	
-	return true;
 }
 
-function serializeCache(filepath, object)
+function cachePutFile(hash, minized, callback)
 {
+	var filepath = this;
+
 	fs.writeFile
 	(
-		filepath,
-		JSON.stringify(object),
-		{ encoding: 'utf8' }
+		filepath + hash,
+		minized,
+		{ encoding: 'utf8' },
+		function(err)
+		{
+			callback(err);
+		}
 	);
 }
 
-function minifyJS(filename)
+function cacheGetMem(hash, callback)
 {
-	//TODO: Async
-	return uglifyjs.minify(fs.readFileSync(filename, 'utf8'), {fromString: true}).code;
+	if (typeof callback != 'function')
+		return;
+
+	callback(null, memCache[hash]);
 }
 
-function minifyCSS(filename)
+function cachePutMem(hash, minized, callback)
 {
-	//TODO: Async
-	return uglifycss.processString(fs.readFileSync(filename, 'utf8'), uglifycss.defaultOptions);
+	memCache[hash] = minized;
+
+	if (typeof callback == 'function')
+		callback(null);
 }
 
-exports = module.exports = function minify(dirPath, options)
+module.exports = function express_minify(options)
 {
 	options = options || {};
 	
-	if (!dirPath)
-	{
-		throw new Error('You need to provide the directory to your static content.');
-		return null;
-	}
-	
 	var
-		suffix = options.suffix || 'minify',
-		match = options.match || '\\.(js|css)$',
-		cacheFile = options.cacheFile || null
+		js_match = options.js_match || /json|javascript/,
+		css_match = options.css_match || /css/,
+		cache = options.cache || false
 	;
-	
-	var
-		matchReg = new RegExp(match, 'i'),
-		ignoreReg = new RegExp('\\.' + suffix + match, 'i')
-	;
-	
-	//storing last-modified data
-	var cache = {};
-	
-	dirPath = path.normalize(dirPath);
-	
-	if (cacheFile !== null)
+
+	var cache_get = cacheGetMem;
+	var cache_put = cachePutMem;
+
+	if (cache)
 	{
-		deserializeCache(cacheFile, function(err, data)
+		cache = path.normalize(cache + '/');
+
+		fs.writeFile(cache + 'test.tmp', new Date().getTime().toString(), function(err)
 		{
 			if (err)
+			{
+				console.log('WARNING: express-minify cache directory is not valid or is not writeable.');
 				return;
-			
-			cache = data;
+			}
+
+			cache_get = function()
+			{
+				return cacheGetFile.apply(cache, arguments);
+			}
+			cache_put = function()
+			{
+				return cachePutFile.apply(cache, arguments);
+			}
 		});
 	}
 	
-	return function minify_middleware(req, res, next)
+	return function minify(req, res, next)
 	{
-		var url = decodeURI(parseUrl(req).pathname);
+		var
+			write = res.write,
+			end = res.end,
+			buf = null,
+			type = TYPE_TEXT
+		;
 
-		if (!url.match(matchReg) || url.match(ignoreReg))
-			return next();
-		
-		var filename = path.normalize(path.join(dirPath, url));
-		
-		fs.stat(filename, function(err, stat)
+		res.write = function(trunk, encoding)
 		{
-			if (err || stat.isDirectory())
-				return next();
-			
-			var extension = getExtension(filename);
-			
-			//file not modified
-			if (cache[filename] !== undefined && stat.mtime.getTime() === cache[filename])
+			//send header first
+			if (!this.headerSent)
+				this._implicitHeader();
+
+			if (trunk == undefined)
+				return;
+
+			if (typeof trunk == 'string')
+				trunk = new Buffer(trunk, encoding);
+
+			if (buf)	//buffer the content
+				buf.push(trunk);
+			else
+				write.call(this, trunk);
+		}
+
+		res.end = function(trunk, encoding)
+		{
+			var _this = this;
+
+			if (trunk != undefined)
+				res.write.apply(_this, arguments);
+
+			if (buf)	//ready to minify
 			{
-				req.url = req.url + '.' + suffix + extension;
-				return next();
-			}
-			
-			//ready to minify
-			try
-			{
-				switch(extension.toLowerCase())
-				{
-					case '.css':
-						var minized = minifyCSS(filename);
-						break;
-					case '.js':
-						var minized = minifyJS(filename);
-						break;
-					default:
-						return next();
-						break;
-				}
+				var buffer = Buffer.concat(buf);
+				var md5 = crypto.createHash('md5').update(buffer).digest('hex');
 				
-				fs.writeFile
-				(
-					filename + '.' + suffix + extension,
-					minized,
-					{ encoding: 'utf8' },
-					function(err)
+				if (minified_hash[md5] == undefined)
+				{
+					//cache miss
+					switch(type)
+					{
+						case TYPE_TEXT:
+							//Do nothing
+							write.call(_this, buffer);
+							end.call(_this);
+							break;
+						case TYPE_JS:
+						case TYPE_CSS:
+							var minized = minifyIt(type, buffer.toString(encoding));
+
+							cache_put(md5, minized, function()
+							{
+								minified_hash[md5] = true;
+
+								write.call(_this, minized, 'utf8');
+								end.call(_this);
+							});
+
+							break;
+					}
+				}
+				else
+				{
+					//cache hit
+					cache_get(md5, function(err, minized)
 					{
 						if (err)
-							return next();
-						
-						//update cache
-						cache[filename] = stat.mtime.getTime();
-						
-						if (cacheFile !== null)
-							serializeCache(cacheFile, cache);
-						
-						//successfully created the minized file
-						req.url = req.url + '.' + suffix + extension;
-						return next();
-					}
-				);
+						{
+							raise(err);
+							return;
+						}
+
+						write.call(_this, minized);
+						end.call(_this);
+					});
+				}
 			}
-			catch(e)
+			else
 			{
-				return next();
+				end.call(_this);
 			}
-			
-			return;
+		}
+
+		//Determine whether it should be minified
+		res.on('header', function()
+		{
+			var content_type = res.getHeader('Content-Type');
+
+			if (js_match.test(content_type))
+				type = TYPE_JS;
+			else if (css_match.test(content_type))
+				type = TYPE_CSS;
+
+			//not match
+			if (type == TYPE_TEXT)
+				return;
+
+			res.removeHeader('Content-Length');
+			buf = [];
 		});
-	};
+
+		next();
+	}
 };
