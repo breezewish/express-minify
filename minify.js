@@ -73,6 +73,21 @@ function cachePutFile(hash, minized, callback)
 	);
 }
 
+function cacheTryFile(hash, callback)
+{
+	if (typeof callback != 'function')
+		return;
+
+	if (minified_hash[hash] !== undefined)
+	{
+		callback(false);
+		return;
+	}
+
+	var filepath = this;
+	fs.stat(filepath + hash, callback);
+}
+
 function cacheGetMem(hash, callback)
 {
 	if (typeof callback != 'function')
@@ -89,6 +104,14 @@ function cachePutMem(hash, minized, callback)
 		callback(null);
 }
 
+function cacheTryMem(hash, callback)
+{
+	if (typeof callback != 'function')
+		return;
+
+	callback(!minified_hash[hash]);
+}
+
 module.exports = function express_minify(options)
 {
 	options = options || {};
@@ -99,8 +122,11 @@ module.exports = function express_minify(options)
 		cache = options.cache || false
 	;
 
-	var cache_get = cacheGetMem;
-	var cache_put = cachePutMem;
+	var
+		cache_get = cacheGetMem,
+		cache_put = cachePutMem,
+		cache_try = cacheTryMem
+	;
 
 	if (cache)
 	{
@@ -114,6 +140,7 @@ module.exports = function express_minify(options)
 				return;
 			}
 
+			//OK: rewrite functions
 			cache_get = function()
 			{
 				return cacheGetFile.apply(cache, arguments);
@@ -121,6 +148,10 @@ module.exports = function express_minify(options)
 			cache_put = function()
 			{
 				return cachePutFile.apply(cache, arguments);
+			}
+			cache_try = function()
+			{
+				return cacheTryFile.apply(cache, arguments);
 			}
 		});
 	}
@@ -164,46 +195,49 @@ module.exports = function express_minify(options)
 				var buffer = Buffer.concat(buf);
 				var md5 = crypto.createHash('md5').update(buffer).digest('hex');
 				
-				if (minified_hash[md5] == undefined)
+				cache_try(md5, function(err)
 				{
-					//cache miss
-					switch(type)
+					if (err)
 					{
-						case TYPE_TEXT:
-							//Do nothing
-							write.call(_this, buffer);
-							end.call(_this);
-							break;
-						case TYPE_JS:
-						case TYPE_CSS:
-							var minized = minifyIt(type, buffer.toString(encoding));
-
-							cache_put(md5, minized, function()
-							{
-								minified_hash[md5] = true;
-
-								write.call(_this, minized, 'utf8');
-								end.call(_this);
-							});
-
-							break;
-					}
-				}
-				else
-				{
-					//cache hit
-					cache_get(md5, function(err, minized)
-					{
-						if (err)
+						//miss
+						switch(type)
 						{
-							raise(err);
-							return;
-						}
+							case TYPE_TEXT:
+								//Do nothing
+								write.call(_this, buffer);
+								end.call(_this);
+								break;
+							case TYPE_JS:
+							case TYPE_CSS:
+								var minized = minifyIt(type, buffer.toString(encoding));
 
-						write.call(_this, minized);
-						end.call(_this);
-					});
-				}
+								cache_put(md5, minized, function()
+								{
+									minified_hash[md5] = true;
+
+									write.call(_this, minized, 'utf8');
+									end.call(_this);
+								});
+
+								break;
+						}
+					}
+					else
+					{
+						//hit
+						cache_get(md5, function(err, minized)
+						{
+							if (err)
+							{
+								raise(err);
+								return;
+							}
+
+							write.call(_this, minized);
+							end.call(_this);
+						});
+					}
+				});
 			}
 			else
 			{
