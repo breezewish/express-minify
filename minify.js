@@ -38,7 +38,7 @@ function cacheGetFile(hash, callback)
 	if (typeof callback != 'function')
 		return;
 
-	var filepath = this;
+	var filepath = this.toString();
 
 	fs.readFile
 	(
@@ -59,7 +59,7 @@ function cacheGetFile(hash, callback)
 
 function cachePutFile(hash, minized, callback)
 {
-	var filepath = this;
+	var filepath = this.toString();
 
 	fs.writeFile
 	(
@@ -84,7 +84,7 @@ function cacheTryFile(hash, callback)
 		return;
 	}
 
-	var filepath = this;
+	var filepath = this.toString();
 	fs.stat(filepath + hash, callback);
 }
 
@@ -130,7 +130,7 @@ module.exports = function express_minify(options)
 
 	if (cache)
 	{
-		cache = path.normalize(cache + '/');
+		cache = path.normalize(cache + '/').toString();
 
 		fs.writeFile(cache + 'test.tmp', new Date().getTime().toString(), function(err)
 		{
@@ -193,7 +193,7 @@ module.exports = function express_minify(options)
 			if (buf)	//ready to minify
 			{
 				var buffer = Buffer.concat(buf);
-				var md5 = crypto.createHash('md5').update(buffer).digest('hex');
+				var md5 = crypto.createHash('md5').update(buffer).digest('hex').toString();
 				
 				cache_try(md5, function(err)
 				{
