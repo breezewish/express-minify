@@ -15,8 +15,6 @@ npm install express-minify
 
 # Usage
 
-## Basic
-
 ```javascript
 var minify = require('express-minify');
 app.use(minify());
@@ -27,8 +25,6 @@ app.use(minify());
 ```javascript
 app.use(minify(options));
 ```
-
-## Options:
 
 - `js_match`: the regular expression that matches javascript content-type.
 
