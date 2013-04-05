@@ -3,10 +3,6 @@ express-minify
 
 express-minify is an express middleware that automatically minify and cache your javascript and css files.
 
-# Notice
-
-Since minifying is a BLOCK operation, it is NOT RECOMMENDED to use this in production environment.
-
 # Installation
 
 ```
@@ -79,6 +75,10 @@ app.use(express.static(__dirname + '/static'));
 
 app.listen(8080);
 ```
+
+# Notice
+
+If you are using `cluster`, it is recommended to use express-minify with file cache enabled.
 
 # Licence
 
