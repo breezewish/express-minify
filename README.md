@@ -1,7 +1,7 @@
 express-minify
 ==============
 
-express-minify is an express middleware that automatically minify and cache your javascript and css files.
+express-minify is an express middleware that automatically minify and cache your javascript and css files. It also supports LESS/SASS/Stylus/CoffeeScript dynamic processing and minifying.
 
 # Installation
 
@@ -29,6 +29,22 @@ app.use(minify(options));
 - `css_match`: the regular expression that matches css content-type.
 
   **Default**: `/css/`
+
+- `sass_match`: the regular expression that matches SASS content-type.
+
+  **Default**: `/(sass|scss)/`
+
+- `less_match`: the regular expression that matches LESS content-type.
+
+  **Default**: `/less/`
+
+- `stylus_match`: the regular expression that matches STYLUS content-type.
+
+  **Default**: `/stylus/`
+
+- `coffee_match`: the regular expression that matches CoffeeScript content-type.
+
+  **Default**: `/coffeescript/`
 
 - `cache`: the directory for cache storage. Pass `false` to use a Memory cache handler.
 
@@ -71,6 +87,29 @@ var express = require('express');
 var app = express();
 
 app.use(minify({cache: __dirname + '/cache'}));
+app.use(express.static(__dirname + '/static'));
+
+app.listen(8080);
+```
+
+## Using CoffeeScript/LESS/SASS/Stylus:
+
+```javascript
+var minify = require('express-minify');
+var express = require('express');
+var app = express();
+
+//Important!
+express.static.mime.define(
+{
+	'text/coffeescript':	['coffee'],
+	'text/less':			['less'],
+	'text/x-sass':			['sass'],
+	'text/x-scss':			['scss'],
+	'text/stylus':			['styl']
+});
+
+app.use(minify());
 app.use(express.static(__dirname + '/static'));
 
 app.listen(8080);

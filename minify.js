@@ -3,6 +3,11 @@ var
 	path = require('path'),
 	uglifyjs = require('uglify-js'),
 	uglifycss = require('uglifycss'),
+	sass = require('node-sass'),
+	less = require('less'),
+	lessParser = new less.Parser(),
+	stylus = require('stylus'),
+	coffee = require('coffee-script'),
 	crypto = require('crypto')
 ;
 
@@ -14,21 +19,95 @@ var
 var
 	TYPE_TEXT = 0,
 	TYPE_JS = 1,
-	TYPE_CSS = 2
+	TYPE_CSS = 2,
+	TYPE_SASS = 3,
+	TYPE_LESS = 4,
+	TYPE_STYLUS = 5,
+	TYPE_COFFEE = 6
 ;
 
-function minifyIt(type, content)
+function precompileError(err, type)
 {
+	return JSON.stringify(err);
+}
+
+function minifyIt(type, content, callback)
+{
+	if (typeof callback != 'function')
+		return;
+
 	switch(type)
 	{
 		case TYPE_JS:
-			return uglifyjs.minify(content, {fromString: true}).code;
+
+			callback(uglifyjs.minify(content, {fromString: true}).code);
+
 			break;
+
 		case TYPE_CSS:
-			return uglifycss.processString(content, uglifycss.defaultOptions);
+
+			callback(uglifycss.processString(content, uglifycss.defaultOptions));
+
 			break;
+
+		case TYPE_SASS:
+
+			sass.render(content, function(err, css)
+			{
+				if (err != null)
+				{
+					//TODO: Better error handling
+					callback(precompileError(err, type));
+					return;
+				}
+
+				callback(uglifycss.processString(css, uglifycss.defaultOptions));
+			});
+
+			break;
+
+		case TYPE_LESS:
+
+			lessParser.parse(content, function(err, tree)
+			{
+				if (err != null)
+				{
+					callback(precompileError(err, type));
+					return;
+				}
+				
+				var css = tree.toCSS();
+				callback(uglifycss.processString(css, uglifycss.defaultOptions));
+			});
+
+			break;
+
+		case TYPE_STYLUS:
+
+			stylus.render(content, function(err, css)
+			{
+				if (err != null)
+				{
+					callback(precompileError(err, type));
+					return;
+				}
+
+				callback(uglifycss.processString(css, uglifycss.defaultOptions));
+			});
+
+			break;
+
+		case TYPE_COFFEE:
+
+			var js = coffee.compile(content);
+			callback(uglifyjs.minify(js, {fromString: true}).code);
+
+			break;
+
 		default:
-			return content;
+
+			callback(content);
+
 			break;
 	}
 }
@@ -119,6 +198,10 @@ module.exports = function express_minify(options)
 	var
 		js_match = options.js_match || /json|javascript/,
 		css_match = options.css_match || /css/,
+		sass_match = options.sass_match || /(sass|scss)/,
+		less_match = options.less_match || /less/,
+		stylus_match = options.stylus_match || /stylus/,
+		coffee_match = options.coffee_match || /coffeescript/,
 		cache = options.cache || false
 	;
 
@@ -203,20 +286,29 @@ module.exports = function express_minify(options)
 						switch(type)
 						{
 							case TYPE_TEXT:
+
 								//Do nothing
 								write.call(_this, buffer);
 								end.call(_this);
+
 								break;
+
 							case TYPE_JS:
 							case TYPE_CSS:
-								var minized = minifyIt(type, buffer.toString(encoding));
+							case TYPE_LESS:
+							case TYPE_SASS:
+							case TYPE_STYLUS:
+							case TYPE_COFFEE:
 
-								cache_put(md5, minized, function()
+								minifyIt(type, buffer.toString(encoding), function(minized)
 								{
-									minified_hash[md5] = true;
+									cache_put(md5, minized, function()
+									{
+										minified_hash[md5] = true;
 
-									write.call(_this, minized, 'utf8');
-									end.call(_this);
+										write.call(_this, minized, 'utf8');
+										end.call(_this);
+									});
 								});
 
 								break;
@@ -251,15 +343,39 @@ module.exports = function express_minify(options)
 			var content_type = res.getHeader('Content-Type');
 
 			if (js_match.test(content_type))
+			{
 				type = TYPE_JS;
+			}
 			else if (css_match.test(content_type))
+			{
 				type = TYPE_CSS;
+			}
+			else if (sass_match.test(content_type))
+			{
+				type = TYPE_SASS;
+				res.setHeader('content-type', 'text/css');
+			}
+			else if (less_match.test(content_type))
+			{
+				type = TYPE_LESS;
+				res.setHeader('content-type', 'text/css');
+			}
+			else if (stylus_match.test(content_type))
+			{
+				type = TYPE_STYLUS;
+				res.setHeader('content-type', 'text/css');
+			}
+			else if (coffee_match.test(content_type))
+			{
+				type = TYPE_COFFEE;
+				res.setHeader('content-type', 'text/javascript');
+			}
 
 			//not match
 			if (type == TYPE_TEXT)
 				return;
 
-			res.removeHeader('Content-Length');
+			res.removeHeader('content-length');
 			buf = [];
 		});
 
