@@ -3,6 +3,8 @@ express-minify
 
 express-minify is an express middleware that automatically minify and cache your javascript and css files. It also supports LESS/SASS/Stylus/CoffeeScript dynamic processing and minifying.
 
+Please feel free to contribute to this project :)
+
 # Installation
 
 ```
@@ -92,14 +94,16 @@ app.use(express.static(__dirname + '/static'));
 app.listen(8080);
 ```
 
-## Using CoffeeScript/LESS/SASS/Stylus:
+## CoffeeScript/LESS/SASS/Stylus parsing and minifying:
 
 ```javascript
+// http://localhost/auto_parsed_compressed.coffee
+
 var minify = require('express-minify');
 var express = require('express');
 var app = express();
 
-//Important!
+// Important!
 express.static.mime.define(
 {
 	'text/coffeescript':	['coffee'],
