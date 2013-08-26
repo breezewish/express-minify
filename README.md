@@ -126,7 +126,7 @@ app.listen(8080);
 ## Support CoffeeScript/LESS/SASS/Stylus parsing and minifying:
 
 ```javascript
-// http://localhost/auto_parsed_compressed.coffee
+// Test URL: http://localhost/auto_parsed_compressed.coffee
 
 var minify = require('express-minify');
 var express = require('express');
@@ -135,11 +135,11 @@ var app = express();
 // Important!
 express.static.mime.define(
 {
-	'text/coffeescript':	['coffee'],
-	'text/less':			['less'],
-	'text/x-sass':			['sass'],
-	'text/x-scss':			['scss'],
-	'text/stylus':			['styl']
+    'text/coffeescript':  ['coffee'],
+    'text/less':          ['less'],
+    'text/x-sass':        ['sass'],
+    'text/x-scss':        ['scss'],
+    'text/stylus':        ['styl']
 });
 
 app.use(minify());

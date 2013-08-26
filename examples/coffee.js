@@ -7,11 +7,11 @@ var app = express();
 // Important!
 express.static.mime.define(
 {
-	'text/coffeescript':	['coffee'],
-	'text/less':			['less'],
-	'text/x-sass':			['sass'],
-	'text/x-scss':			['scss'],
-	'text/stylus':			['styl']
+    'text/coffeescript':  ['coffee'],
+    'text/less':          ['less'],
+    'text/x-sass':        ['sass'],
+    'text/x-scss':        ['scss'],
+    'text/stylus':        ['styl']
 });
 
 app.use(minify());
