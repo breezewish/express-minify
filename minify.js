@@ -285,9 +285,9 @@ module.exports = function express_minify(options)
                     return;
                 }
 
-                var md5 = crypto.createHash('md5').update(buffer).digest('hex').toString();
+                var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
                 
-                cache_try(md5, function(err)
+                cache_try(sha1, function(err)
                 {
                     if (err)
                     {
@@ -311,9 +311,9 @@ module.exports = function express_minify(options)
 
                                 minifyIt(type, buffer.toString(encoding), function(minized)
                                 {
-                                    cache_put(md5, minized, function()
+                                    cache_put(sha1, minized, function()
                                     {
-                                        minified_hash[md5] = true;
+                                        minified_hash[sha1] = true;
 
                                         write.call(_this, minized, 'utf8');
                                         end.call(_this);
@@ -326,7 +326,7 @@ module.exports = function express_minify(options)
                     else
                     {
                         //hit
-                        cache_get(md5, function(err, minized)
+                        cache_get(sha1, function(err, minized)
                         {
                             if (err)
                             {
