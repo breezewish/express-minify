@@ -153,7 +153,7 @@ app.listen(8080);
 When data is responded dynamicly and is changing all the time, it shouldn't be minified in order to save your CPU and disk space
 (because dynamic data will not hit file cache).
 
-You can simply set `_no_minify = true` to the `response` object like this to disable minifying (and also include CoffeeScript/Sass/... parsing):
+You can simply set `_no_minify = true` to the `response` object to disable minifying (and also include CoffeeScript/Sass/... parsing) like this:
 
 ```javascript
 var minify = require('express-minify');
