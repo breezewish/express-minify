@@ -5,6 +5,7 @@ var app = express();
 app.use(minify());
 app.get('/get_server_time.js', function(req, res)
 {
+    res._no_minify = true;
     res.setHeader('Content-Type', 'application/javascript');
     res.end("MyLib.remoteCall(" + JSON.stringify({
         'id': '1',
