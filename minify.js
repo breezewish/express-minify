@@ -276,6 +276,15 @@ module.exports = function express_minify(options)
             if (buf)    //ready to minify
             {
                 var buffer = Buffer.concat(buf);
+
+                //do not minify this response
+                if (res._no_minify)
+                {
+                    write.call(_this, buffer);
+                    end.call(_this);
+                    return;
+                }
+
                 var md5 = crypto.createHash('md5').update(buffer).digest('hex').toString();
                 
                 cache_try(md5, function(err)
@@ -340,6 +349,10 @@ module.exports = function express_minify(options)
         //Determine whether it should be minified
         res.on('header', function()
         {
+            //do not minify this response
+            if (res._no_minify)
+                return;
+
             var content_type = res.getHeader('Content-Type');
 
             if (js_match.test(content_type))
