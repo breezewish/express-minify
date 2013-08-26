@@ -5,6 +5,13 @@ express-minify is an express middleware that automatically minify and cache your
 
 Please be free to contribute to this project :)
 
+# Note
+
+For better performance and more powerful features (eg: generate Javascript Maps), you should use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
+to complete these tasks such as minifying and CoffeeScript/Stylus/LESS compiling.
+
+This module should ONLY be used for DEBUG propose.
+
 # Installation
 
 ```
@@ -175,7 +182,6 @@ app.get('/get_server_time.js', function(req, res)
 
 app.listen(8080);
 ```
-
 
 # Notice
 
