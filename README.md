@@ -26,7 +26,7 @@ app.use(minify(options));
 
 - `js_match`: the regular expression that matches javascript content-type.
 
-  **Default**: `/json|javascript/`
+  **Default**: `/javascript/`
   
 - `css_match`: the regular expression that matches css content-type.
 

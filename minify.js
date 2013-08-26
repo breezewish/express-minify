@@ -196,7 +196,7 @@ module.exports = function express_minify(options)
     options = options || {};
     
     var
-        js_match = options.js_match || /json|javascript/,
+        js_match = options.js_match || /javascript/,
         css_match = options.css_match || /css/,
         sass_match = options.sass_match || /(sass|scss)/,
         less_match = options.less_match || /less/,
