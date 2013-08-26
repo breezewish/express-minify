@@ -74,7 +74,7 @@ app.use(express.static(__dirname + '/static'));
 app.listen(8080);
 ```
 
-## Working with GZIP:
+## Working with Gzip:
 
 ```javascript
 var minify = require('express-minify');
