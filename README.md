@@ -3,7 +3,7 @@ express-minify
 
 express-minify is an express middleware that automatically minify and cache your javascript and css files. It also supports LESS/SASS/Stylus/CoffeeScript dynamic processing and minifying.
 
-Please feel free to contribute to this project :)
+Please be free to contribute to this project :)
 
 # Installation
 
@@ -81,7 +81,36 @@ app.use(express.static(__dirname + '/static'));
 app.listen(8080);
 ```
 
-## Using file cache:
+## Working with dynamic response:
+
+```javascript
+var minify = require('express-minify');
+var express = require('express');
+var app = express();
+
+var responseJS = 
+    "(function(window, undefined)\n" +
+    "{\n" +
+    "\n" +
+    "    var hello = 'hello';\n" +
+    "\n" +
+    "    var world = 'world';\n" +
+    "\n" +
+    "    alert(hello + world);\n" +
+    "\n" +
+    "})(window);"
+
+app.use(minify());
+app.get('/response.js', function(req, res)
+{
+    res.setHeader('Content-Type', 'application/javascript');
+    res.end(responseJS);
+});
+
+app.listen(8080);
+```
+
+## Use file caching to improve performance:
 
 ```javascript
 var minify = require('express-minify');
@@ -94,7 +123,7 @@ app.use(express.static(__dirname + '/static'));
 app.listen(8080);
 ```
 
-## CoffeeScript/LESS/SASS/Stylus parsing and minifying:
+## Support CoffeeScript/LESS/SASS/Stylus parsing and minifying:
 
 ```javascript
 // http://localhost/auto_parsed_compressed.coffee
@@ -118,6 +147,35 @@ app.use(express.static(__dirname + '/static'));
 
 app.listen(8080);
 ```
+
+## Do not minify this response!
+
+When data is responded dynamicly and is changing all the time, it shouldn't be minified in order to save your CPU and disk space
+(because dynamic data will not hit file cache).
+
+You can simply set `_no_minify = true` to the `response` object like this to disable minifying (and also include CoffeeScript/Sass/... parsing):
+
+```javascript
+var minify = require('express-minify');
+var express = require('express');
+var app = express();
+
+app.use(minify());
+app.get('/get_server_time.js', function(req, res)
+{
+    res._no_minify = true;    // do not minify this response!
+    res.setHeader('Content-Type', 'application/javascript');
+    res.end("MyLib.remoteCall(" + JSON.stringify({
+        'id': '1',
+        'data': {
+            'timestamp': new Date().getTime()
+        }
+    }, null, 4) + ");");
+});
+
+app.listen(8080);
+```
+
 
 # Notice
 

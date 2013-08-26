@@ -1,4 +1,4 @@
-// http://localhost/auto_parsed_compressed.coffee
+// Test URL: http://localhost/auto_parsed_compressed.coffee
 
 var minify = require('express-minify');
 var express = require('express');
