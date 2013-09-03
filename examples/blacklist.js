@@ -5,7 +5,7 @@ var app = express();
 app.use(minify(
 {
     blacklist: [
-        /^\.min\.(css|js)$/
+        /\.min\.(css|js)$/
     ]
 }));
 app.use(express.static(__dirname + '/static'));
