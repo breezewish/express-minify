@@ -58,6 +58,14 @@ app.use(minify(options));
 - `cache`: the directory for cache storage. Pass `false` to use a Memory cache handler.
 
   **Default**: `false`
+
+- `blacklist`: an Array of RegExp. Requests matches any rules of blacklist will not be minified.
+  
+  **Default**: `null`
+
+- `whitelist`: an Array of RegExp. If set, any requests don't match whitelist rules will not be minified. 
+  
+  **Default**: `null`
   
 # Example
 
@@ -182,6 +190,39 @@ app.get('/get_server_time.js', function(req, res)
 
 app.listen(8080);
 ```
+
+## Whitelist and Blacklist
+
+### Blacklist
+
+Will not minify `*.min.css` and `*.min.js`:
+
+```javascript
+var minify = require('express-minify');
+var express = require('express');
+var app = express();
+
+app.use(minify(
+{
+    blacklist: [
+        /^\.min\.(css|js)$/
+    ]
+}));
+app.use(express.static(__dirname + '/static'));
+
+app.listen(8080);
+```
+
+### Blacklist and whitelist priorities
+
+1. won't minify if `res._no_minify == true`
+
+2. won't minify if matches any rules in the blacklist
+
+3. if whitelist is set, won't minify if doesn't matches any rules in the whitelist
+
+4. perform minify operations
+
 
 # Notice
 
