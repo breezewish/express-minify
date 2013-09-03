@@ -202,6 +202,8 @@ module.exports = function express_minify(options)
         less_match = options.less_match || /less/,
         stylus_match = options.stylus_match || /stylus/,
         coffee_match = options.coffee_match || /coffeescript/,
+        whitelist = options.whitelist || null,
+        blacklist = options.blacklist || null,
         cache = options.cache || false
     ;
 
@@ -353,6 +355,38 @@ module.exports = function express_minify(options)
             if (res._no_minify)
                 return;
 
+            //test whitelist and blacklist
+            if (blacklist && blacklist.constructor === Array)
+            {
+                // match blacklist
+
+                for (var i = 0; i < blacklist.length; ++i)
+                {
+                    if (blacklist[i].test(req.url))
+                        return;
+                }
+            }
+
+            if (whitelist && whitelist.constructor === Array)
+            {
+                var matched = false;
+
+                // match whitelist
+
+                for (var i = 0; i < whitelist.length; ++i)
+                {
+                    if (whitelist[i].test(req.url))
+                    {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched)
+                    return;
+            }
+
+            //test content-type
             var content_type = res.getHeader('Content-Type');
 
             if (js_match.test(content_type))
