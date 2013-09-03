@@ -3,7 +3,7 @@
     "author": "Breezewish",
     "description": "express-minify is an express middleware that automatically minify your javascript and css files.",
     "homepage": "https://github.com/breeswish/express-minify",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "main": "minify.js",
     "keywords": [
         "uglify",
