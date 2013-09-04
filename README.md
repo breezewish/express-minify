@@ -41,7 +41,7 @@ app.use(minify(options));
 
 - `sass_match`: the regular expression that matches SASS content-type.
 
-  **Default**: `/(sass|scss)/`
+  **Default**: `/scss/`
 
 - `less_match`: the regular expression that matches LESS content-type.
 
@@ -152,7 +152,6 @@ express.static.mime.define(
 {
     'text/coffeescript':  ['coffee'],
     'text/less':          ['less'],
-    'text/x-sass':        ['sass'],
     'text/x-scss':        ['scss'],
     'text/stylus':        ['styl']
 });

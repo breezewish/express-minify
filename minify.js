@@ -51,16 +51,17 @@ function minifyIt(type, content, callback)
 
         case TYPE_SASS:
 
-            sass.render(content, function(err, css)
-            {
-                if (err != null)
+            sass.renderSync({
+                data: content,
+                success: function(css)
+                {
+                    callback(uglifycss.processString(css, uglifycss.defaultOptions));
+                },
+                error: function(err)
                 {
                     //TODO: Better error handling
                     callback(precompileError(err, type));
-                    return;
                 }
-
-                callback(uglifycss.processString(css, uglifycss.defaultOptions));
             });
 
             break;
@@ -206,7 +207,7 @@ module.exports = function express_minify(options)
     var
         js_match = options.js_match || /javascript/,
         css_match = options.css_match || /css/,
-        sass_match = options.sass_match || /(sass|scss)/,
+        sass_match = options.sass_match || /scss/,
         less_match = options.less_match || /less/,
         stylus_match = options.stylus_match || /stylus/,
         coffee_match = options.coffee_match || /coffeescript/,

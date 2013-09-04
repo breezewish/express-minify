@@ -9,7 +9,6 @@ express.static.mime.define(
 {
     'text/coffeescript':  ['coffee'],
     'text/less':          ['less'],
-    'text/x-sass':        ['sass'],
     'text/x-scss':        ['scss'],
     'text/stylus':        ['styl']
 });
