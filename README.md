@@ -76,7 +76,7 @@ app.use(minify(
 
 - `whitelist`: `[RegExp1, RegExp2, ...]`
   
-  if set, any requests don't match whitelist rules will not be minified. 
+  if set, any requests not matching whitelist rules will not be minified. 
   
 # Examples
 
@@ -196,7 +196,7 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 0.0.7
 
-- Replace uglifycss with cssmin
+- Replaced uglifycss with cssmin
 
 - Dropped support of `.sass` (https://github.com/andrew/node-sass/issues/12)
 
