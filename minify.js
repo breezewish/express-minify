@@ -140,14 +140,21 @@ function cachePutFile(hash, minized, callback)
 {
     var filepath = this.toString();
 
+    // fix issue #3
+    // not ended file writing will cause wrong responding.
+    // using temp files can mostly avoid the case.
+
     fs.writeFile
     (
-        filepath + hash,
+        filepath + hash + '.tmp',
         minized,
         { encoding: 'utf8' },
         function(err)
         {
-            callback(err);
+            fs.rename(filepath + hash + '.tmp', filepath + hash, function(err)
+            {
+                callback(err);
+            });
         }
     );
 }
@@ -225,6 +232,8 @@ module.exports = function express_minify(options)
                 return;
             }
 
+            //Consider deleting the test file?
+            
             //OK: rewrite functions
             cache_get = function()
             {
