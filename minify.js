@@ -212,7 +212,7 @@ module.exports = function express_minify(options)
         stylus_match = options.stylus_match || /stylus/,
         coffee_match = options.coffee_match || /coffeescript/,
         whitelist = options.whitelist || null,
-        blacklist = options.blacklist || null,
+        blacklist = options.blacklist || [/\.min\.(css|js)$/],
         cache = options.cache || false
     ;
 
