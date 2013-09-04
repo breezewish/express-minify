@@ -192,6 +192,40 @@ app.use(express.static(__dirname + '/static'));
 
 If you are using `cluster`, it is strongly recommended to enable file cache.
 
+# Change log
+
+0.0.7
+
+- Replace uglifycss with cssmin
+
+- Dropped support of `.sass` (https://github.com/andrew/node-sass/issues/12)
+
+- Fixed [#3](https://github.com/breeswish/express-minify/issues/3)
+
+0.0.6
+
+- Added blacklist and whitelist [#2](https://github.com/breeswish/express-minify/issues/2)
+
+0.0.5
+
+- Added `res._no_minify`
+
+- Fixed [#1](https://github.com/breeswish/express-minify/issues/1)
+
+0.0.4
+
+- Added LESS/SASS/Stylus/CoffeeScript parsing and minifying.
+
+0.0.3
+
+- Added file cache
+
+- Fixed the bug of non-string path.
+
+0.0.2
+
+- Added dynamic minifying.
+
 # Licence
 
 (The MIT License)
