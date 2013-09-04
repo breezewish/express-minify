@@ -12,7 +12,6 @@ var
 ;
 
 var
-    minified_hash = {},
     memCache = {}
 ;
 
@@ -172,12 +171,6 @@ function cacheTryFile(hash, callback)
     if (typeof callback != 'function')
         return;
 
-    if (minified_hash[hash] !== undefined)
-    {
-        callback(false);
-        return;
-    }
-
     var filepath = this.toString();
     fs.stat(filepath + hash, callback);
 }
@@ -203,7 +196,7 @@ function cacheTryMem(hash, callback)
     if (typeof callback != 'function')
         return;
 
-    callback(!minified_hash[hash]);
+    callback(typeof memCache[hash] == 'undefined');
 }
 
 module.exports = function express_minify(options)
@@ -339,8 +332,6 @@ module.exports = function express_minify(options)
                                 {
                                     cache_put(sha1, minized, function()
                                     {
-                                        minified_hash[sha1] = true;
-
                                         write.call(_this, minized, 'utf8');
                                         end.call(_this);
                                     });
