@@ -256,7 +256,8 @@ module.exports = function express_minify(options)
             write = res.write,
             end = res.end,
             buf = null,
-            type = TYPE_TEXT
+            type = TYPE_TEXT,
+            response_ended = false
         ;
 
         res.write = function(trunk, encoding)
@@ -279,10 +280,15 @@ module.exports = function express_minify(options)
 
         res.end = function(trunk, encoding)
         {
+            if (response_ended)
+                return;
+
             var _this = this;
 
             if (trunk != undefined)
                 res.write.apply(_this, arguments);
+
+            response_ended = true;
 
             if (buf)    //ready to minify
             {
@@ -296,9 +302,9 @@ module.exports = function express_minify(options)
                     end.call(_this);
                     return;
                 }
-
-                var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
                 
+                var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
+
                 cache_try(sha1, function(err)
                 {
                     if (err)
