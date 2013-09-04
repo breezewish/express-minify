@@ -28,81 +28,75 @@ app.use(minify());
 ## Options
 
 ```javascript
-app.use(minify(options));
+app.use(minify(
+{
+    js_match: /javascript/,
+    css_match: /css/,
+    sass_match: /scss/,
+    less_match: /less/,
+    stylus_match: /stylus/,
+    coffee_match: /coffeescript/,
+    cache: false,
+    blacklist: null,
+    whitelist: null
+}));
 ```
 
-- `js_match`: the regular expression that matches javascript content-type.
-
-  **Default**: `/javascript/`
+- `js_match`: `RegExp`
   
-- `css_match`: the regular expression that matches css content-type.
+  matches JavaScript content-type.
 
-  **Default**: `/css/`
-
-- `sass_match`: the regular expression that matches SASS content-type.
-
-  **Default**: `/scss/`
-
-- `less_match`: the regular expression that matches LESS content-type.
-
-  **Default**: `/less/`
-
-- `stylus_match`: the regular expression that matches STYLUS content-type.
-
-  **Default**: `/stylus/`
-
-- `coffee_match`: the regular expression that matches CoffeeScript content-type.
-
-  **Default**: `/coffeescript/`
-
-- `cache`: the directory for cache storage. Pass `false` to use a Memory cache handler.
-
-  **Default**: `false`
-
-- `blacklist`: an Array of RegExp. Requests matches any rules of blacklist will not be minified.
+- `css_match`: `RegExp`
   
-  **Default**: `null`
+  matches css content-type.
 
-- `whitelist`: an Array of RegExp. If set, any requests don't match whitelist rules will not be minified. 
+- `sass_match`: `RegExp`
   
-  **Default**: `null`
-  
-# Example
+  matches SASS content-type.
 
-## Working with express static:
+- `less_match`: `RegExp`
+  
+  matches LESS content-type.
+
+- `stylus_match`: `RegExp`
+  
+  matches STYLUS content-type.
+
+- `coffee_match`: `RegExp`
+  
+  matches CoffeeScript content-type.
+
+- `cache`: `String | false`
+  
+  the directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended).
+
+- `blacklist`: `[RegExp1, RegExp2, ...]`
+  
+  requests matches any rules of blacklist will not be minified.
+
+- `whitelist`: `[RegExp1, RegExp2, ...]`
+  
+  if set, any requests don't match whitelist rules will not be minified. 
+  
+# Examples
+
+## Working with express-static:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 app.use(minify());
 app.use(express.static(__dirname + '/static'));
-
-app.listen(8080);
 ```
 
-## Working with Gzip:
+## Working with express-gzip:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 app.use(express.compress());
 app.use(minify());
-app.use(express.static(__dirname + '/static'));
-
-app.listen(8080);
 ```
 
-## Working with dynamic response:
+## Minify dynamic responses:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 var responseJS = 
     "(function(window, undefined)\n" +
     "{\n" +
@@ -121,33 +115,20 @@ app.get('/response.js', function(req, res)
     res.setHeader('Content-Type', 'application/javascript');
     res.end(responseJS);
 });
-
-app.listen(8080);
 ```
 
-## Use file caching to improve performance:
+## Use file cache to improve performance:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 app.use(minify({cache: __dirname + '/cache'}));
 app.use(express.static(__dirname + '/static'));
-
-app.listen(8080);
 ```
 
-## Support CoffeeScript/LESS/SASS/Stylus parsing and minifying:
+## Parse and minify CoffeeScript/LESS/SASS/Stylus:
 
 ```javascript
 // Test URL: http://localhost/auto_parsed_compressed.coffee
 
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
-// Important!
 express.static.mime.define(
 {
     'text/coffeescript':  ['coffee'],
@@ -157,9 +138,6 @@ express.static.mime.define(
 });
 
 app.use(minify());
-app.use(express.static(__dirname + '/static'));
-
-app.listen(8080);
 ```
 
 ## Do not minify this response!
@@ -170,10 +148,6 @@ When data is responded dynamicly and is changing all the time, it shouldn't be m
 You can simply set `_no_minify = true` to the `response` object to disable minifying (and also include CoffeeScript/Sass/... parsing) like this:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 app.use(minify());
 app.get('/get_server_time.js', function(req, res)
 {
@@ -186,21 +160,15 @@ app.get('/get_server_time.js', function(req, res)
         }
     }, null, 4) + ");");
 });
-
-app.listen(8080);
 ```
 
-## Whitelist and Blacklist
+## Whitelist and blacklist
 
 ### Blacklist
 
 Will not minify `*.min.css` and `*.min.js`:
 
 ```javascript
-var minify = require('express-minify');
-var express = require('express');
-var app = express();
-
 app.use(minify(
 {
     blacklist: [
@@ -208,8 +176,6 @@ app.use(minify(
     ]
 }));
 app.use(express.static(__dirname + '/static'));
-
-app.listen(8080);
 ```
 
 ### Blacklist and whitelist priorities
@@ -222,10 +188,9 @@ app.listen(8080);
 
 4. perform minify operations
 
-
 # Notice
 
-If you are using `cluster`, it is recommended to use express-minify with file cache enabled.
+If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Licence
 
