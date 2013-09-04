@@ -233,7 +233,7 @@ module.exports = function express_minify(options)
             }
 
             //Consider deleting the test file?
-            
+
             //OK: rewrite functions
             cache_get = function()
             {
@@ -288,7 +288,8 @@ module.exports = function express_minify(options)
             {
                 var buffer = Buffer.concat(buf);
 
-                //do not minify this response
+                // do not minify this response
+                // reaches here if res.send() occurs before res._no_minify = true
                 if (res._no_minify)
                 {
                     write.call(_this, buffer);
