@@ -130,8 +130,16 @@ function cacheGetFile(hash, callback)
                 callback(err);
                 return;
             }
-            
-            callback(null, data);
+
+            try
+            {
+                data = JSON.parse(data).content;
+                callback(null, data);
+            }
+            catch(err)
+            {
+                callback(err);
+            }
         }
     );
 }
@@ -147,7 +155,7 @@ function cachePutFile(hash, minized, callback)
     fs.writeFile
     (
         filepath + hash + '.tmp',
-        minized,
+        JSON.stringify({content:minized}),
         { encoding: 'utf8' },
         function(err)
         {
@@ -302,7 +310,7 @@ module.exports = function express_minify(options)
                     end.call(_this);
                     return;
                 }
-                
+
                 var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
 
                 cache_try(sha1, function(err)
@@ -348,7 +356,9 @@ module.exports = function express_minify(options)
                         {
                             if (err)
                             {
-                                raise(err);
+                                //cannot parse the cache
+                                write.call(_this, buffer);
+                                end.call(_this);
                                 return;
                             }
 
