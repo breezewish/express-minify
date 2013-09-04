@@ -7,10 +7,8 @@ Please be free to contribute to this project :)
 
 # Note
 
-For better performance and more powerful features (eg: generate Javascript Maps), you should use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
+For better performance and more powerful features (eg: generate Javascript Maps), I **strongly recommend** you to use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
 to complete these tasks such as minifying and CoffeeScript/Stylus/LESS compiling.
-
-This module should ONLY be used for DEBUG propose.
 
 # Installation
 
@@ -198,7 +196,7 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 - Changed `options`'s default `blacklist` to `[/\.min\.(css|js)$/]`
 
-- Replaced uglifycss with cssmin
+- Replaced `uglifycss` with `cssmin`
 
 - Dropped support for `.sass` (https://github.com/andrew/node-sass/issues/12)
 
