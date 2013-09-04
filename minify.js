@@ -2,7 +2,7 @@ var
     fs = require('fs'),
     path = require('path'),
     uglifyjs = require('uglify-js'),
-    uglifycss = require('uglifycss'),
+    cssmin = require('cssmin'),
     sass = require('node-sass'),
     less = require('less'),
     lessParser = new less.Parser(),
@@ -45,7 +45,7 @@ function minifyIt(type, content, callback)
 
         case TYPE_CSS:
 
-            callback(uglifycss.processString(content, uglifycss.defaultOptions));
+            callback(cssmin(content));
 
             break;
 
@@ -55,7 +55,7 @@ function minifyIt(type, content, callback)
                 data: content,
                 success: function(css)
                 {
-                    callback(uglifycss.processString(css, uglifycss.defaultOptions));
+                    callback(cssmin(css));
                 },
                 error: function(err)
                 {
@@ -77,7 +77,7 @@ function minifyIt(type, content, callback)
                 }
                 
                 var css = tree.toCSS();
-                callback(uglifycss.processString(css, uglifycss.defaultOptions));
+                callback(cssmin(css));
             });
 
             break;
@@ -92,7 +92,7 @@ function minifyIt(type, content, callback)
                     return;
                 }
 
-                callback(uglifycss.processString(css, uglifycss.defaultOptions));
+                callback(cssmin(css));
             });
 
             break;
