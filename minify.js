@@ -39,7 +39,7 @@ function minifyIt(type, options, content, callback)
     {
         case TYPE_JS:
 
-            callback(uglifyjs.minify(content, {mangle: options.mangle||{}, fromString: true}).code);
+            callback(uglifyjs.minify(content, {mangle: typeof options.mangle != 'undefined'? options.mangle:{}, fromString: true}).code);
 
             break;
 
