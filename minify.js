@@ -30,7 +30,7 @@ function precompileError(err, type)
     return JSON.stringify(err);
 }
 
-function minifyIt(type, content, callback)
+function minifyIt(type, options, content, callback)
 {
     if (typeof callback != 'function')
         return;
@@ -39,7 +39,7 @@ function minifyIt(type, content, callback)
     {
         case TYPE_JS:
 
-            callback(uglifyjs.minify(content, {fromString: true}).code);
+            callback(uglifyjs.minify(content, {mangle: options.mangle||{}, fromString: true}).code);
 
             break;
 
@@ -329,7 +329,7 @@ module.exports = function express_minify(options)
                             case TYPE_STYLUS:
                             case TYPE_COFFEE:
 
-                                minifyIt(type, buffer.toString(encoding), function(minized)
+                                minifyIt(type, options, buffer.toString(encoding), function(minized)
                                 {
                                     cache_put(sha1, minized, function()
                                     {
