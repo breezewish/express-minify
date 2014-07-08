@@ -128,6 +128,24 @@ express.static.mime.define(
 app.use(minify());
 ```
 
+## Disable mangle for a specific response
+
+use `response._no_mangle = true`.
+
+Generally you may need this if you are using AngularJs:
+
+```javascript
+app.use(function(req, res, next)
+{
+    // do not mangle -angular.js files
+    if (/-angular\.js$/.test(req.url)) {
+        res._no_mangle = true;
+    }
+    next();
+});
+app.use(minify());
+```
+
 ## Disable minify or cache for a specific response
 
 If you don't want to minify a specific response, just use: `response._no_minify = true`. Notice that this would also disabling CoffeeScript/SCSS/LESS/Stylus parsing for this response.
@@ -190,9 +208,13 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.0.9
+
+- Added support for `res._no_mangle` [#10](https://github.com/breeswish/express-minify/pull/10)
+
 0.0.8
 
-- Remove options of `whitelist` and `blacklist`
+- Removed options of `whitelist` and `blacklist`
 
 - Added support for `res._no_cache` [#5](https://github.com/breeswish/express-minify/issues/5)
 

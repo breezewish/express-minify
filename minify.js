@@ -30,7 +30,7 @@ function precompileError(err, type)
     return JSON.stringify(err);
 }
 
-function minifyIt(type, content, callback)
+function minifyIt(type, options, content, callback)
 {
     if (typeof callback != 'function')
         return;
@@ -38,7 +38,11 @@ function minifyIt(type, content, callback)
     switch(type)
     {
         case TYPE_JS:
-            callback(uglifyjs.minify(content, {fromString: true}).code);
+            var opt = {fromString: true};
+            if (options.no_mangle) {
+                opt.mangle = false;
+            }
+            callback(uglifyjs.minify(content, opt).code);
             break;
         case TYPE_CSS:
             callback(cssmin(content));
@@ -76,7 +80,11 @@ function minifyIt(type, content, callback)
             break;
         case TYPE_COFFEE:
             var js = coffee.compile(content);
-            callback(uglifyjs.minify(js, {fromString: true}).code);
+            var opt = {fromString: true};
+            if (options.no_mangle) {
+                opt.mangle = false;
+            }
+            callback(uglifyjs.minify(js, opt).code);
             break;
         default:
             callback(content);
@@ -316,7 +324,7 @@ module.exports = function express_minify(options)
                             break;
                         default:
                             // cache miss
-                            minifyIt(type, buffer.toString(encoding), function(minized) {
+                            minifyIt(type, { no_mangle: _this._no_mangle }, buffer.toString(encoding), function(minized) {
                                 if (_this._no_cache) {
                                     // do not save cache for this response
                                     end.call(_this, minized, 'utf8');
