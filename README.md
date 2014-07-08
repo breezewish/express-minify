@@ -34,9 +34,7 @@ app.use(minify(
     less_match: /less/,
     stylus_match: /stylus/,
     coffee_match: /coffeescript/,
-    cache: false,
-    blacklist: [/\.min\.(css|js)$/],
-    whitelist: null
+    cache: false
 }));
 ```
 
@@ -68,14 +66,6 @@ app.use(minify(
   
   the directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended).
 
-- `blacklist`: `[RegExp1, RegExp2, ...]`
-  
-  requests matches any rules of blacklist will not be minified.
-
-- `whitelist`: `[RegExp1, RegExp2, ...]`
-  
-  if set, any requests not matching whitelist rules will not be minified. 
-  
 # Examples
 
 ## Working with express-static:
@@ -138,59 +128,75 @@ express.static.mime.define(
 app.use(minify());
 ```
 
-## Do not minify this response!
+## Disable minify or cache for a specific response
 
-When data is responded dynamicly and is changing all the time, it shouldn't be minified in order to save your CPU and disk space
-(because dynamic data will not hit file cache).
+If you don't want to minify a specific response, just use: `response._no_minify = true`. Notice that this would also disabling CoffeeScript/SCSS/LESS/Stylus parsing for this response.
 
-You can simply set `_no_minify = true` to the `response` object to disable minifying (and also include CoffeeScript/Sass/... parsing) like this:
+If you want to minify a response but don't want to cache it (for example, dynamic data), use: `response._no_cache = true`.
+
+Example:
+
+```javascript
+app.use(function(req, res, next)
+{
+    // for all *.min.css or *.min.js, do not minify it
+    if (/\.min\.(css|js)$/.test(req.url)) {
+        res._no_minify = true;
+    }
+    next();
+});
+app.use(minify());
+```
+
+Yet another example:
 
 ```javascript
 app.use(minify());
-app.get('/get_server_time.js', function(req, res)
+app.get('/server_time_min.jsonp', function(req, res)
 {
-    res._no_minify = true;    // do not minify this response!
-    res.setHeader('Content-Type', 'application/javascript');
-    res.end("MyLib.remoteCall(" + JSON.stringify({
-        'id': '1',
+    var obj = {
+        'ok': true,
         'data': {
             'timestamp': new Date().getTime()
         }
-    }, null, 4) + ");");
+    };
+
+    // minify this response, but do not cache it
+    res._no_cache = true;
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
+});
+app.get('/server_time.jsonp', function(req, res)
+{
+    var obj = {
+        'ok': true,
+        'data': {
+            'timestamp': new Date().getTime()
+        }
+    };
+
+    // do not minify this response
+    res._no_minify = true;
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
 });
 ```
 
-## Whitelist and blacklist
-
-### Blacklist
-
-Will not minify `*.min.css` and `*.min.js`:
-
-```javascript
-app.use(minify(
-{
-    blacklist: [
-        /\.min\.(css|js)$/    //default
-    ]
-}));
-app.use(express.static(__dirname + '/static'));
-```
-
-### Blacklist and whitelist priorities
-
-1. won't minify if `res._no_minify == true`
-
-2. won't minify if matches any rules in the blacklist
-
-3. if whitelist is set, won't minify if doesn't matches any rules in the whitelist
-
-4. perform minify operations
+WARNING: DO NOT set `_no_minify` between `res.write` and `res.end`. It may lose data!
 
 # Notice
 
 If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
+
+0.0.8
+
+- Remove options of `whitelist` and `blacklist`
+
+- Added support for `res._no_cache` [#5](https://github.com/breeswish/express-minify/issues/5)
+
+- Node v0.10 compatible
 
 0.0.7
 
@@ -208,7 +214,7 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 0.0.5
 
-- Support for `res._no_minify`
+- Added support for `res._no_minify`
 
 - Fixed [#1](https://github.com/breeswish/express-minify/issues/1)
 
