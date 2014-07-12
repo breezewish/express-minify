@@ -1,7 +1,7 @@
 {
     "name": "express-minify",
     "author": "Breezewish",
-    "description": "express-minify is an express middleware that automatically minify your javascript and css files.",
+    "description": "An express middleware to automatically minify and cache your javascript and css files.",
     "homepage": "https://github.com/breeswish/express-minify",
     "version": "0.0.10",
     "main": "minify.js",
@@ -25,5 +25,14 @@
         "coffee-script":"~1.6.2",
         "stylus":"~0.32.1",
         "on-headers":"0.0.0"
+    },
+    "devDependencies": {
+        "mocha": "~1.20.1",
+        "supertest": "~0.13.0",
+        "should": "~4.0.1",
+        "async": "~0.9.0"
+    },
+    "scripts": {
+        "test": "mocha --check-leaks --reporter dot"
     }
 }

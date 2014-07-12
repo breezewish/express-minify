@@ -1,14 +1,14 @@
 express-minify
 ==============
 
-express-minify is an express middleware that automatically minify and cache your javascript and css files. It also supports LESS/SASS/Stylus/CoffeeScript dynamic processing and minifying.
+express-minify is an express middleware to automatically minify and cache your javascript and css files.
 
-Please be free to contribute to this project :)
+It also supports LESS/SASS/Stylus/CoffeeScript compiling and minifying.
 
 # Note
 
-For better performance and more powerful features (eg: generate Javascript Maps), I **strongly recommend** you to use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
-to complete these tasks such as minifying and CoffeeScript/Stylus/LESS compiling.
+For better performance and more powerful features (eg: generate Javascript Maps), I recommend you to use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
+to complete these tasks such as minifying and LESS/SASS/Stylus/CoffeeScript compiling.
 
 # Installation
 
@@ -208,6 +208,14 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.0.10
+
+- Added tests
+
+- Fixed SASS compiling
+
+- Fixed express-compression compatibility
+
 0.0.9
 
 - Added support for `res._no_mangle` [#10](https://github.com/breeswish/express-minify/pull/10)
@@ -254,14 +262,25 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 - Support for dynamic minifying
 
-# Licence
+# License
 
-(The MIT License)
+The MIT License (MIT)
 
-Copyright (c) 2013 Breezewish. <http://breeswish.org>
+Copyright (c) 2014 Breezewish
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
