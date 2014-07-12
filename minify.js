@@ -44,22 +44,33 @@ function minifyIt(type, options, content, callback)
             if (options.no_mangle) {
                 opt.mangle = false;
             }
-            callback(uglifyjs.minify(content, opt).code);
+            var result = content;
+            try {
+                result = uglifyjs.minify(content, opt).code
+            } catch(err) {
+            }
+            callback(result);
             break;
         case TYPE_CSS:
-            callback(cssmin(content));
+            var result = content;
+            try {
+                result = cssmin(content)
+            } catch(err) {
+            }
+            callback(result);
             break;
         case TYPE_SASS:
-            sass.renderSync({
-                data: content,
-                success: function(css) {
-                    callback(cssmin(css));
-                },
-                error: function(err) {
-                    //TODO: Better error handling
-                    callback(precompileError(err, type));
+            var result;
+            try {
+                result = sass.renderSync(content);
+                try {
+                    result = cssmin(result);
+                } catch(err) {
                 }
-            });
+            } catch(err) {
+                result = precompileError(err, type);
+            }
+            callback(result);
             break;
         case TYPE_LESS:
             lessParser.parse(content, function(err, tree) {
@@ -67,8 +78,12 @@ function minifyIt(type, options, content, callback)
                     callback(precompileError(err, type));
                     return;
                 }
-                var css = tree.toCSS();
-                callback(cssmin(css));
+                var result = tree.toCSS();
+                try {
+                    result = cssmin(result);
+                } catch(err) {
+                }
+                callback(result);
             });
             break;
         case TYPE_STYLUS:
@@ -77,16 +92,30 @@ function minifyIt(type, options, content, callback)
                     callback(precompileError(err, type));
                     return;
                 }
-                callback(cssmin(css));
+                var result = css;
+                try {
+                    result = cssmin(result);
+                } catch(err) {
+                }
+                callback(result);
             });
             break;
         case TYPE_COFFEE:
-            var js = coffee.compile(content);
-            var opt = {fromString: true};
-            if (options.no_mangle) {
-                opt.mangle = false;
+            var result;
+            try {
+                result = coffee.compile(content);
+                var opt = {fromString: true};
+                if (options.no_mangle) {
+                    opt.mangle = false;
+                }
+                try {
+                    result = uglifyjs.minify(result, opt).code
+                } catch(err) {
+                }
+            } catch(err) {
+                result = precompileError(err, type);
             }
-            callback(uglifyjs.minify(js, opt).code);
+            callback(result);
             break;
         default:
             callback(content);
