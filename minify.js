@@ -1,44 +1,35 @@
-var
-    fs = require('fs'),
-    path = require('path'),
-    uglifyjs = require('uglify-js'),
-    cssmin = require('cssmin'),
-    sass = require('node-sass'),
-    less = require('less'),
-    lessParser = new less.Parser(),
-    stylus = require('stylus'),
-    coffee = require('coffee-script'),
-    crypto = require('crypto')
-;
-
+var fs = require('fs');
+var path = require('path');
+var crypto = require('crypto');
 var onHeaders = require('on-headers');
 
-var
-    memCache = {}
-;
+var uglifyjs = require('uglify-js');
+var cssmin = require('cssmin');
+var sass;
+var lessParser;
+var stylus;
+var coffee;
 
-var
-    TYPE_TEXT = 0,
-    TYPE_JS = 1,
-    TYPE_CSS = 2,
-    TYPE_SASS = 3,
-    TYPE_LESS = 4,
-    TYPE_STYLUS = 5,
-    TYPE_COFFEE = 6
-;
+var memCache = {};
 
-function precompileError(err, type)
-{
+var TYPE_TEXT = 0;
+var TYPE_JS = 1;
+var TYPE_CSS = 2;
+var TYPE_SASS = 3;
+var TYPE_LESS = 4;
+var TYPE_STYLUS = 5;
+var TYPE_COFFEE = 6;
+
+function precompileError(err, type) {
     return JSON.stringify(err);
 }
 
-function minifyIt(type, options, content, callback)
-{
-    if (typeof callback != 'function')
+function minifyIt(type, options, content, callback) {
+    if (typeof callback != 'function') {
         return;
+    }
 
-    switch(type)
-    {
+    switch(type) {
         case TYPE_JS:
             var opt = {fromString: true};
             if (options.no_mangle) {
@@ -60,6 +51,9 @@ function minifyIt(type, options, content, callback)
             callback(result);
             break;
         case TYPE_SASS:
+            if (!sass) {
+                sass = require('node-sass');
+            }
             var result;
             try {
                 result = sass.renderSync(content);
@@ -73,6 +67,10 @@ function minifyIt(type, options, content, callback)
             callback(result);
             break;
         case TYPE_LESS:
+            if (!lessParser) {
+                var less = require('less');
+                lessParser = new less.Parser();
+            }
             lessParser.parse(content, function(err, tree) {
                 if (err) {
                     callback(precompileError(err, type));
@@ -87,6 +85,9 @@ function minifyIt(type, options, content, callback)
             });
             break;
         case TYPE_STYLUS:
+            if (!stylus) {
+                stylus = require('stylus');
+            }
             stylus.render(content, function(err, css) {
                 if (err) {
                     callback(precompileError(err, type));
@@ -101,6 +102,9 @@ function minifyIt(type, options, content, callback)
             });
             break;
         case TYPE_COFFEE:
+            if (!coffee) {
+                coffee = require('coffee-script');
+            }
             var result;
             try {
                 result = coffee.compile(content);
@@ -123,8 +127,7 @@ function minifyIt(type, options, content, callback)
     }
 }
 
-function cacheGetFile(hash, callback)
-{
+function cacheGetFile(hash, callback) {
     if (typeof callback != 'function') {
         return;
     }
@@ -145,8 +148,7 @@ function cacheGetFile(hash, callback)
     });
 }
 
-function cachePutFile(hash, minized, callback)
-{
+function cachePutFile(hash, minized, callback) {
     var filepath = this.toString();
 
     // fix issue #3
@@ -161,8 +163,7 @@ function cachePutFile(hash, minized, callback)
     });
 }
 
-function cacheGetMem(hash, callback)
-{
+function cacheGetMem(hash, callback) {
     if (typeof callback != 'function') {
         return;
     }
@@ -174,8 +175,7 @@ function cacheGetMem(hash, callback)
     }
 }
 
-function cachePutMem(hash, minized, callback)
-{
+function cachePutMem(hash, minized, callback) {
     memCache[hash] = minized;
 
     if (typeof callback == 'function') {
@@ -183,33 +183,25 @@ function cachePutMem(hash, minized, callback)
     }
 }
 
-module.exports = function express_minify(options)
-{
+module.exports = function express_minify(options) {
     options = options || {};
     
-    var
-        js_match = options.js_match || /javascript/,
-        css_match = options.css_match || /css/,
-        sass_match = options.sass_match || /scss/,
-        less_match = options.less_match || /less/,
-        stylus_match = options.stylus_match || /stylus/,
-        coffee_match = options.coffee_match || /coffeescript/,
-        cache = options.cache || false
-    ;
+    var js_match = options.js_match || /javascript/;
+    var css_match = options.css_match || /css/;
+    var sass_match = options.sass_match || /scss/;
+    var less_match = options.less_match || /less/;
+    var stylus_match = options.stylus_match || /stylus/;
+    var coffee_match = options.coffee_match || /coffeescript/;
+    var cache = options.cache || false;
 
-    var
-        cache_get = cacheGetMem,
-        cache_put = cachePutMem
-    ;
+    var cache_get = cacheGetMem;
+    var cache_put = cachePutMem;
 
-    if (cache)
-    {
+    if (cache) {
         cache = path.normalize(cache + '/').toString();
 
-        fs.writeFile(cache + 'test.tmp', new Date().getTime().toString(), function(err)
-        {
-            if (err)
-            {
+        fs.writeFile(cache + 'test.tmp', new Date().getTime().toString(), function(err) {
+            if (err) {
                 console.log('WARNING: express-minify cache directory is not valid or is not writeable.');
                 return;
             }
@@ -226,8 +218,7 @@ module.exports = function express_minify(options)
         });
     }
     
-    return function minify(req, res, next)
-    {
+    return function minify(req, res, next) {
         var _storeHeader = res._storeHeader;
 
         var write = res.write;
@@ -305,8 +296,7 @@ module.exports = function express_minify(options)
             buf.push(chunk);
         }
 
-        res.end = function(data, encoding)
-        {
+        res.end = function(data, encoding) {
             if (this.finished) {
                 return false;
             }
