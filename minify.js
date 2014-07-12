@@ -11,6 +11,8 @@ var
     crypto = require('crypto')
 ;
 
+var onHeaders = require('on-headers');
+
 var
     memCache = {}
 ;
@@ -205,61 +207,47 @@ module.exports = function express_minify(options)
         var buf = null;
         var type = TYPE_TEXT;
 
-        res._storeHeader = function(statusLine, headers)
-        {
-            if (this._no_minify) {
-                return _storeHeader.apply(this, arguments);
+        onHeaders(res, function() {
+            if (req.method === 'HEAD') {
+                return;
             }
 
-            var contentType = null;
-            var contentTypeKey = null;
-
-            for (var header in headers) {
-                if (header.toLowerCase() === 'content-type') {
-                    contentTypeKey = header;
-                    contentType = headers[header];
-                    break;
-                }
+            if (res._no_minify) {
+                return;
             }
 
-            // there are no header called 'content-type'
-            if (!contentType) {
-                return _storeHeader.apply(this, arguments);
+            var contentType = res.getHeader('Content-Type');
+            if (contentType === undefined) {
+                return;
             }
-
+            
             if (js_match.test(contentType)) {
                 type = TYPE_JS;
             } else if (css_match.test(contentType)) {
                 type = TYPE_CSS;
             } else if (sass_match.test(contentType)) {
                 type = TYPE_SASS;
-                headers[contentTypeKey] = 'text/css';
+                res.setHeader('Content-Type', 'text/css');
             } else if (less_match.test(contentType)) {
                 type = TYPE_LESS;
-                headers[contentTypeKey] = 'text/css';
+                res.setHeader('Content-Type', 'text/css');
             } else if (stylus_match.test(contentType)) {
                 type = TYPE_STYLUS;
-                headers[contentTypeKey] = 'text/css';
+                res.setHeader('Content-Type', 'text/css');
             } else if (coffee_match.test(contentType)) {
                 type = TYPE_COFFEE;
-                headers[contentTypeKey] = 'text/javascript';
+                res.setHeader('Content-Type', 'text/javascript');
             }
 
-            if (type !== TYPE_TEXT) {
-                // delete content-length
-                for (var header in headers) {
-                    if (header.toLowerCase() === 'content-length') {
-                        delete headers[header];
-                        break;
-                    }
-                }
-
-                // prepare the buffer
-                buf = [];
+            if (type === TYPE_TEXT) {
+                return;
             }
 
-            return _storeHeader.apply(this, arguments);
-        }
+            res.removeHeader('Content-Length');
+            
+            // prepare the buffer
+            buf = [];
+        });
 
         res.write = function(chunk, encoding) {
             if (!this._header) {
@@ -267,7 +255,7 @@ module.exports = function express_minify(options)
             }
 
             if (buf === null || this._no_minify) {
-                return write.apply(this, arguments);
+                return write.call(this, chunk, encoding);
             }
 
             if (!this._hasBody) {
@@ -303,7 +291,7 @@ module.exports = function express_minify(options)
             }
 
             if (buf === null || this._no_minify) {
-                return end.apply(this, arguments);
+                return end.call(this, data, encoding);
             }
 
             // TODO: implement hot-path optimization
@@ -312,6 +300,7 @@ module.exports = function express_minify(options)
             }
 
             var buffer = Buffer.concat(buf);
+
             var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
             var _this = this;
 
@@ -327,17 +316,20 @@ module.exports = function express_minify(options)
                             minifyIt(type, { no_mangle: _this._no_mangle }, buffer.toString(encoding), function(minized) {
                                 if (_this._no_cache) {
                                     // do not save cache for this response
-                                    end.call(_this, minized, 'utf8');
+                                    write.call(_this, minized, 'utf8');
+                                    end.call(_this);
                                 } else {
                                     cache_put(sha1, minized, function() {
-                                        end.call(_this, minized, 'utf8');
+                                        write.call(_this, minized, 'utf8');
+                                        end.call(_this);
                                     });
                                 }
                             });
                             break;
                     }
                 } else {
-                    end.call(_this, minized, 'utf8');
+                    write.call(_this, minized, 'utf8');
+                    end.call(_this);
                 }
             });
         }

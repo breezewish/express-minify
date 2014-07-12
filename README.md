@@ -75,10 +75,10 @@ app.use(minify());
 app.use(express.static(__dirname + '/static'));
 ```
 
-## Working with express-gzip:
+## Working with express-compression(gzip):
 
 ```javascript
-app.use(express.compress());
+app.use(compression());
 app.use(minify());
 ```
 
