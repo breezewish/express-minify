@@ -220,12 +220,8 @@ module.exports = function express_minify(options)
             if (contentType === undefined) {
                 return;
             }
-            
-            if (js_match.test(contentType)) {
-                type = TYPE_JS;
-            } else if (css_match.test(contentType)) {
-                type = TYPE_CSS;
-            } else if (sass_match.test(contentType)) {
+
+            if (sass_match.test(contentType)) {
                 type = TYPE_SASS;
                 res.setHeader('Content-Type', 'text/css');
             } else if (less_match.test(contentType)) {
@@ -237,6 +233,10 @@ module.exports = function express_minify(options)
             } else if (coffee_match.test(contentType)) {
                 type = TYPE_COFFEE;
                 res.setHeader('Content-Type', 'text/javascript');
+            } else if (js_match.test(contentType)) {
+                type = TYPE_JS;
+            } else if (css_match.test(contentType)) {
+                type = TYPE_CSS;
             }
 
             if (type === TYPE_TEXT) {
