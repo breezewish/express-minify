@@ -6,7 +6,7 @@ var onHeaders = require('on-headers');
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
 var sass;
-var lessParser;
+var less;
 var stylus;
 var coffee;
 
@@ -67,11 +67,10 @@ function minifyIt(type, options, content, callback) {
             callback(result);
             break;
         case TYPE_LESS:
-            if (!lessParser) {
-                var less = require('less');
-                lessParser = new less.Parser();
+            if (!less) {
+                less = new require('less').Parser();
             }
-            lessParser.parse(content, function(err, tree) {
+            less.parse(content, function(err, tree) {
                 if (err) {
                     callback(precompileError(err, type));
                     return;
