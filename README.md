@@ -208,6 +208,10 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.0.11
+
+- Update dependencies [#11](https://github.com/breeswish/express-minify/issues/11)
+
 0.0.10
 
 - Added tests
