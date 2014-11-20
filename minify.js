@@ -1,4 +1,5 @@
 var fs = require('fs');
+var extend = require('util')._extend;
 var path = require('path');
 var crypto = require('crypto');
 var onHeaders = require('on-headers');
@@ -31,10 +32,7 @@ function minifyIt(type, options, content, callback) {
 
     switch(type) {
         case TYPE_JS:
-            var opt = {fromString: true};
-            if (options.no_mangle) {
-                opt.mangle = false;
-            }
+            var opt = extend({fromString: true}, options);
             var result = content;
             try {
                 result = uglifyjs.minify(content, opt).code
@@ -107,10 +105,7 @@ function minifyIt(type, options, content, callback) {
             var result;
             try {
                 result = coffee.compile(content);
-                var opt = {fromString: true};
-                if (options.no_mangle) {
-                    opt.mangle = false;
-                }
+                var opt = extend({fromString: true}, options);
                 try {
                     result = uglifyjs.minify(result, opt).code
                 } catch(err) {
@@ -216,8 +211,8 @@ module.exports = function express_minify(options) {
             };
         });
     }
-    
-    return function minify(req, res, next) {
+
+    return function middleware(req, res, next) {
         var _storeHeader = res._storeHeader;
 
         var write = res.write;
@@ -330,8 +325,18 @@ module.exports = function express_minify(options) {
                             throw new Error('[express-minify] impossible to reach here. Please report the bug.');
                             break;
                         default:
+                            var options = {};
+                            if (_this._uglifyMangle !== undefined) {
+                                options.mangle = _this._uglifyMangle;
+                            }
+                            if (_this._uglifyOutput !== undefined) {
+                                options.output = _this._uglifyOutput;
+                            }
+                            if (_this._uglifyCompress !== undefined) {
+                                options.compress = _this._uglifyCompress;
+                            }
                             // cache miss
-                            minifyIt(type, { no_mangle: _this._no_mangle }, buffer.toString(encoding), function(minized) {
+                            minifyIt(type, options, buffer.toString(encoding), function(minized) {
                                 if (_this._no_cache) {
                                     // do not save cache for this response
                                     write.call(_this, minized, 'utf8');

@@ -4,9 +4,10 @@ var app = express();
 
 app.use(function(req, res, next)
 {
-    // do not mangle angular JavaScript files
-    if (/-angular\.js$/.test(req.url)) {
-        res._uglifyMangle = false;
+    if (/\.(user|meta)\.js$/.test(req.url)) {
+        res._uglifyOutput = {
+            comments: true
+        };
     }
     next();
 });

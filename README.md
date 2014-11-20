@@ -128,23 +128,41 @@ express.static.mime.define(
 app.use(minify());
 ```
 
-## Disable mangle for a specific response
+## Specify UglifyJs options
 
-use `response._no_mangle = true`.
+`response._uglifyMangle`: pass false to skip mangling names.
 
-Generally you may need this if you are using AngularJs:
+Example: Disable mangle for AngularJs.
 
 ```javascript
 app.use(function(req, res, next)
 {
     // do not mangle -angular.js files
     if (/-angular\.js$/.test(req.url)) {
-        res._no_mangle = true;
+        res._uglifyMangle = true;
     }
     next();
 });
 app.use(minify());
 ```
+
+`response._uglifyOutput`: specify UglifyJs additional [output options](http://lisperator.net/uglifyjs/codegen).
+
+Example: Preserve comments for specific files.
+
+```javascript
+app.use(function(req, res, next)
+{
+    if (/\.(user|meta)\.js$/.test(req.url)) {
+        res._uglifyOutput = {
+            comments: true
+        };
+    }
+    next();
+});
+```
+
+`response._uglifyCompress`: specify UglifyJs custom [compressor options](http://lisperator.net/uglifyjs/compress).
 
 ## Disable minify or cache for a specific response
 
@@ -200,13 +218,18 @@ app.get('/server_time.jsonp', function(req, res)
 });
 ```
 
-WARNING: DO NOT set `_no_minify` between `res.write` and `res.end`. It may lose data!
+WARNING: DO NOT set `_no_minify` between `res.write` and `res.end`. You may lose data!
 
 # Notice
 
 If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
+
+0.1.0
+
+- Changed disabling mangle: `res._no_mangle = true` => `res._uglifyMangle = false`
+- Added support for passing options to uglify: `res._uglifyCompress`, `res._uglifyOutput`
 
 0.0.11
 
