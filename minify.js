@@ -66,14 +66,14 @@ function minifyIt(type, options, content, callback) {
             break;
         case TYPE_LESS:
             if (!less) {
-                less = new require('less').Parser();
+                less = require('less');
             }
-            less.parse(content, function(err, tree) {
+            less.render(content, function(err, output) {
                 if (err) {
                     callback(precompileError(err, type));
                     return;
                 }
-                var result = tree.toCSS();
+                var result = output.css;
                 try {
                     result = cssmin(result);
                 } catch(err) {
@@ -326,6 +326,9 @@ module.exports = function express_minify(options) {
                             break;
                         default:
                             var options = {};
+                            if (_this._no_mangle) {
+                                options.mangle = false;
+                            }
                             if (_this._uglifyMangle !== undefined) {
                                 options.mangle = _this._uglifyMangle;
                             }

@@ -226,10 +226,15 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.1.1
+
+- Added fallback for `res._no_mangle = true` (Please use `res._uglifyMangle = false`)
+- Update dependencies
+
 0.1.0
 
 - Changed disabling mangle: `res._no_mangle = true` => `res._uglifyMangle = false`
-- Added support for passing options to uglify: `res._uglifyCompress`, `res._uglifyOutput`
+- Added support for passing additional UglifyJs options: `res._uglifyCompress`, `res._uglifyOutput` [#15](https://github.com/breeswish/express-minify/issues/15)
 
 0.0.11
 

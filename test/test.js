@@ -11,7 +11,7 @@ var compression = require('compression');
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
 var sass = require('node-sass');
-var less = new require('less').Parser();
+var less = require('less');
 var stylus = require('stylus');
 var coffee = require('coffee-script');
 
@@ -28,7 +28,7 @@ var expectation = {
     {src: '#navbar { a { font-weight: bold; } }'}
   ],
   'less': [
-    {src: '.class { width: (1 + 1) }'}
+    {src: '.class { width: (1 + 1)px }'}
   ],
   'stylus': [
     {src: 'fonts = helvetica, arial, sans-serif\nbody {\n  padding: 50px;\n  font: 14px/1.4 fonts;\n}'}
@@ -47,9 +47,11 @@ var header = {
   'coffee': 'text/coffeescript'
 };
 
-init();
-
 describe('minify()', function() {
+
+  before(function(done) {
+    init(done);
+  });
 
   it('should not minify normal content', function(done) {
     var content = 'hello, world';
@@ -227,9 +229,7 @@ describe('minify()', function() {
 
 });
 
-
-
-function init() {
+function init(callback) {
 
   var minifyFunc = {};
 
@@ -246,12 +246,12 @@ function init() {
   }
 
   minifyFunc.less = function(content, callback) {
-    less.parse(content, function(err, tree) {
+    less.render(content, function(err, output) {
       if (err) {
         callback(content);
         return;
       }
-      var css = tree.toCSS();
+      var css = output.css;
       callback(cssmin(css));
     });
   }
@@ -272,13 +272,15 @@ function init() {
   }
 
   // generate expectations
-  for (var type in expectation) {
-    (function(type) {
-      expectation[type].forEach(function(test) {
-        minifyFunc[type](test.src, function(r){test.result = r;});
+  async.eachSeries(Object.keys(expectation), function(type, callback) {
+    async.eachSeries(expectation[type], function(test, callback) {
+      minifyFunc[type](test.src, function(r) {
+        test.result = r;
+        callback();
       });
-    })(type);
-  }
+    }, callback);
+  }, callback);
+  
 }
 
 function createServer(middlewares, fn) {
