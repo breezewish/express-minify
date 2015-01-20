@@ -3,7 +3,7 @@
   "author": "Breezewish",
   "description": "An express middleware to automatically minify and cache your javascript and css files.",
   "homepage": "https://github.com/breeswish/express-minify",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "minify.js",
   "keywords": [
     "uglify",

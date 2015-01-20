@@ -32,10 +32,12 @@ function minifyIt(type, options, content, callback) {
 
     switch(type) {
         case TYPE_JS:
-            var opt = extend({fromString: true}, options);
             var result = content;
             try {
-                result = uglifyjs.minify(content, opt).code
+                if (!options.noMinify) {
+                    var opt = extend({fromString: true}, options.uglify);
+                    result = uglifyjs.minify(result, opt).code;
+                }
             } catch(err) {
             }
             callback(result);
@@ -43,7 +45,9 @@ function minifyIt(type, options, content, callback) {
         case TYPE_CSS:
             var result = content;
             try {
-                result = cssmin(content)
+                if (!options.noMinify) {
+                    result = cssmin(content)
+                }
             } catch(err) {
             }
             callback(result);
@@ -56,7 +60,9 @@ function minifyIt(type, options, content, callback) {
             try {
                 result = sass.renderSync(content);
                 try {
-                    result = cssmin(result);
+                    if (!options.noMinify) {
+                        result = cssmin(result);
+                    }
                 } catch(err) {
                 }
             } catch(err) {
@@ -75,7 +81,9 @@ function minifyIt(type, options, content, callback) {
                 }
                 var result = output.css;
                 try {
-                    result = cssmin(result);
+                    if (!options.noMinify) {
+                        result = cssmin(result);
+                    }
                 } catch(err) {
                 }
                 callback(result);
@@ -92,7 +100,9 @@ function minifyIt(type, options, content, callback) {
                 }
                 var result = css;
                 try {
-                    result = cssmin(result);
+                    if (!options.noMinify) {
+                        result = cssmin(result);
+                    }
                 } catch(err) {
                 }
                 callback(result);
@@ -105,9 +115,11 @@ function minifyIt(type, options, content, callback) {
             var result;
             try {
                 result = coffee.compile(content);
-                var opt = extend({fromString: true}, options);
                 try {
-                    result = uglifyjs.minify(result, opt).code
+                    if (!options.noMinify) {
+                        var opt = extend({fromString: true}, options.uglify);
+                        result = uglifyjs.minify(result, opt).code;
+                    }
                 } catch(err) {
                 }
             } catch(err) {
@@ -226,7 +238,7 @@ module.exports = function express_minify(options) {
                 return;
             }
 
-            if (res._no_minify) {
+            if (res._skip) {
                 return;
             }
 
@@ -257,6 +269,10 @@ module.exports = function express_minify(options) {
                 return;
             }
 
+            if ((type === TYPE_JS || type === TYPE_CSS) && res._no_minify) {
+                return;
+            }
+
             res.removeHeader('Content-Length');
             
             // prepare the buffer
@@ -268,7 +284,7 @@ module.exports = function express_minify(options) {
                 this._implicitHeader();
             }
 
-            if (buf === null || this._no_minify) {
+            if (buf === null) {
                 return write.call(this, chunk, encoding);
             }
 
@@ -303,7 +319,7 @@ module.exports = function express_minify(options) {
                 data = false;
             }
 
-            if (buf === null || this._no_minify) {
+            if (buf === null) {
                 return end.call(this, data, encoding);
             }
 
@@ -314,46 +330,46 @@ module.exports = function express_minify(options) {
 
             var buffer = Buffer.concat(buf);
 
-            var sha1 = crypto.createHash('sha1').update(buffer).digest('hex').toString();
+            // prepare uglify options
+            var uglifyOptions = {};
+            if (this._no_mangle) {
+                uglifyOptions.mangle = false;
+            }
+            if (this._uglifyMangle !== undefined) {
+                uglifyOptions.mangle = this._uglifyMangle;
+            }
+            if (this._uglifyOutput !== undefined) {
+                uglifyOptions.output = this._uglifyOutput;
+            }
+            if (this._uglifyCompress !== undefined) {
+                uglifyOptions.compress = this._uglifyCompress;
+            }
+
+            var options = {
+                uglify: uglifyOptions,
+                noMinify: this._no_minify
+            };
+
+            var cacheKey = crypto.createHash('sha1').update(JSON.stringify(options) + buffer).digest('hex').toString();
             var _this = this;
 
-            cache_get(sha1, function(err, minized) {
+            cache_get(cacheKey, function(err, minized) {
                 if (err) {
-                    switch(type) {
-                        case TYPE_TEXT:
-                            // impossible to reach here
-                            throw new Error('[express-minify] impossible to reach here. Please report the bug.');
-                            break;
-                        default:
-                            var options = {};
-                            if (_this._no_mangle) {
-                                options.mangle = false;
-                            }
-                            if (_this._uglifyMangle !== undefined) {
-                                options.mangle = _this._uglifyMangle;
-                            }
-                            if (_this._uglifyOutput !== undefined) {
-                                options.output = _this._uglifyOutput;
-                            }
-                            if (_this._uglifyCompress !== undefined) {
-                                options.compress = _this._uglifyCompress;
-                            }
-                            // cache miss
-                            minifyIt(type, options, buffer.toString(encoding), function(minized) {
-                                if (_this._no_cache) {
-                                    // do not save cache for this response
-                                    write.call(_this, minized, 'utf8');
-                                    end.call(_this);
-                                } else {
-                                    cache_put(sha1, minized, function() {
-                                        write.call(_this, minized, 'utf8');
-                                        end.call(_this);
-                                    });
-                                }
+                    // cache miss
+                    minifyIt(type, options, buffer.toString(encoding), function(minized) {
+                        if (_this._no_cache) {
+                            // do not save cache for this response
+                            write.call(_this, minized, 'utf8');
+                            end.call(_this);
+                        } else {
+                            cache_put(cacheKey, minized, function() {
+                                write.call(_this, minized, 'utf8');
+                                end.call(_this);
                             });
-                            break;
-                    }
+                        }
+                    });
                 } else {
+                    // cache hit
                     write.call(_this, minized, 'utf8');
                     end.call(_this);
                 }

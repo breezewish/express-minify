@@ -124,7 +124,7 @@ describe('minify()', function() {
           });
           request(server)
           .get('/')
-          .expect(test.result, done);
+          .expect(test.minified, done);
         });
 
 
@@ -153,13 +153,13 @@ describe('minify()', function() {
           });
           request(server)
           .get('/')
-          .expect(test.result, done);
+          .expect(test.minified, done);
         });
 
 
-        it('should not minify content when _no_minify = true occurs before setHeader for ' + header[type], function(done) {
+        it('should not process or minify content when _skip = true occurs before setHeader for ' + header[type], function(done) {
           var server = createServer([minify()], function(req, res) {
-            res._no_minify = true;
+            res._skip = true;
             res.setHeader('Content-Type', header[type]);
             res.end(test.src);
           });
@@ -169,10 +169,10 @@ describe('minify()', function() {
         });
 
 
-        it('should not minify content when _no_minify = true occurs after setHeader for ' + header[type], function(done) {
+        it('should not process or minify content when _skip = true occurs after setHeader for ' + header[type], function(done) {
           var server = createServer([minify()], function(req, res) {
             res.setHeader('Content-Type', header[type]);
-            res._no_minify = true;
+            res._skip = true;
             res.end(test.src);
           });
           request(server)
@@ -181,9 +181,9 @@ describe('minify()', function() {
         });
 
 
-        it('should not remove content-length when _no_minify = true occurs before setHeader for ' + header[type], function(done) {
+        it('should not remove content-length when _skip = true occurs before setHeader for ' + header[type], function(done) {
           var server = createServer([minify()], function(req, res) {
-            res._no_minify = true;
+            res._skip = true;
             res.setHeader('Content-Type', header[type]);
             res.setHeader('Content-Length', new Buffer(test.src).length);
             res.end(test.src);
@@ -193,6 +193,30 @@ describe('minify()', function() {
           .expect('Content-Length', new Buffer(test.src).length, done);
         });
 
+
+        it('should process but not minify content when _no_minify = true occurs before setHeader for ' + header[type], function(done) {
+          var server = createServer([minify()], function(req, res) {
+            res._no_minify = true;
+            res.setHeader('Content-Type', header[type]);
+            res.end(test.src);
+          });
+          request(server)
+          .get('/')
+          .expect(test.processed, done);
+        });
+
+
+        it('should process but not minify content when _no_minify = true occurs after setHeader for ' + header[type], function(done) {
+          var server = createServer([minify()], function(req, res) {
+            res.setHeader('Content-Type', header[type]);
+            res._no_minify = true;
+            res.end(test.src);
+          });
+          request(server)
+          .get('/')
+          .expect(test.processed, done);
+        });
+        
 
         it('should work with express-compression for ' + header[type], function(done) {
           var server = createServer([compression({threshold: 0}), minify()], function(req, res) {
@@ -215,7 +239,7 @@ describe('minify()', function() {
             res.on('end', function(){
               zlib.gunzip(Buffer.concat(buf), function(err, body) {
                 if (err) return done(err);
-                body.toString().should.equal(test.result);
+                body.toString().should.equal(test.minified);
                 done();
               });
             });
@@ -234,48 +258,74 @@ function init(callback) {
   var minifyFunc = {};
 
   minifyFunc.js = function(content, callback) {
-    callback(uglifyjs.minify(content, {fromString: true}).code);
+    callback({
+      processed: content,
+      minified: uglifyjs.minify(content, {fromString: true}).code
+    });
   }
 
   minifyFunc.css = function(content, callback) {
-    callback(cssmin(content));
+    callback({
+      processed: content,
+      minified: cssmin(content)
+    });
   }
 
   minifyFunc.sass = function(content, callback) {
-    callback(cssmin(sass.renderSync(content)));
+    var css = sass.renderSync(content);
+    callback({
+      processed: css,
+      minified: cssmin(css)
+    });
   }
 
   minifyFunc.less = function(content, callback) {
     less.render(content, function(err, output) {
       if (err) {
-        callback(content);
+        callback({
+          processed: content,
+          minified: content
+        });
         return;
       }
       var css = output.css;
-      callback(cssmin(css));
+      callback({
+        processed: css,
+        minified: cssmin(css)
+      });
     });
   }
 
   minifyFunc.stylus = function(content, callback) {
     stylus.render(content, function(err, css) {
       if (err) {
-        callback(content);
+        callback({
+          processed: content,
+          minified: content
+        });
       } else {
-        callback(cssmin(css));
+        callback({
+          processed: css,
+          minified: cssmin(css)
+        });
       }
     });
   }
 
   minifyFunc.coffee = function(content, callback) {
     var js = coffee.compile(content);
-    callback(uglifyjs.minify(js, {fromString: true}).code);
+    callback({
+      processed: js,
+      minified: uglifyjs.minify(js, {fromString: true}).code
+    });
   }
 
   // generate expectations
   async.eachSeries(Object.keys(expectation), function(type, callback) {
     async.eachSeries(expectation[type], function(test, callback) {
       minifyFunc[type](test.src, function(r) {
-        test.result = r;
+        test.processed = r.processed;
+        test.minified = r.minified;
         callback();
       });
     }, callback);

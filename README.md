@@ -66,6 +66,34 @@ app.use(minify(
   
   the directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended).
 
+## Per-Response Options
+
+- `res._skip`
+
+  Pass `true` to disable processing (minifying & precompiling).
+
+- `res._no_minify`
+
+  Pass `true` to disable minifying.
+
+- `res._no_cache`
+
+  Pass `true` to disable caching response data.
+
+### UglifyJs Options
+
+- `res._uglifyMangle`
+
+  Pass `false` to disable mangling names when minifying JavaScript for this response.
+
+- `res._uglifyOutput`
+
+  Pass an object if you wish to specify additional UglifyJs [output options](http://lisperator.net/uglifyjs/codegen) when minifying JavaScript for this response.
+
+- `res._uglifyCompress`
+
+  Pass an object to specify custom UglifyJs [compressor options](http://lisperator.net/uglifyjs/compress) (pass `false` to skip) when minifying JavaScript for this response.
+
 # Examples
 
 ## Working with express-static:
@@ -164,11 +192,11 @@ app.use(function(req, res, next)
 
 `response._uglifyCompress`: specify UglifyJs custom [compressor options](http://lisperator.net/uglifyjs/compress).
 
-## Disable minify or cache for a specific response
+## Disable minifying or caching for a response
 
-If you don't want to minify a specific response, just use: `response._no_minify = true`. Notice that this would also disabling CoffeeScript/SCSS/LESS/Stylus parsing for this response.
+If you don't want to minify a specific response, just use `response._no_minify = true`.
 
-If you want to minify a response but don't want to cache it (for example, dynamic data), use: `response._no_cache = true`.
+If you want to minify a response but don't want to cache it (for example, dynamic response data), use: `response._no_cache = true`.
 
 Example:
 
@@ -218,13 +246,19 @@ app.get('/server_time.jsonp', function(req, res)
 });
 ```
 
-WARNING: DO NOT set `_no_minify` between `res.write` and `res.end`. You may lose data!
+**WARNING**: DO NOT set `_no_minify` between `res.write` and `res.end`. You may lose data!
 
 # Notice
 
 If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
+
+0.1.2
+
+- Added `res._skip`.
+- Modified behaviour of `res._no_minify`. Now it will only disable minifying and won't cause precompiling not working. [#17](https://github.com/breeswish/express-minify/issues/17)
+- Fixed cache bugs with response options.
 
 0.1.1
 
