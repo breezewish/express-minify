@@ -272,7 +272,9 @@ function init(callback) {
   }
 
   minifyFunc.sass = function(content, callback) {
-    var css = sass.renderSync(content);
+    var css = sass.renderSync({
+      data: content
+    }).css;
     callback({
       processed: css,
       minified: cssmin(css)

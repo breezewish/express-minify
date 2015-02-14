@@ -58,7 +58,9 @@ function minifyIt(type, options, content, callback) {
             }
             var result;
             try {
-                result = sass.renderSync(content);
+                result = sass.renderSync({
+                    data: content
+                }).css;
                 try {
                     if (!options.noMinify) {
                         result = cssmin(result);
