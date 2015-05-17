@@ -264,6 +264,13 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.1.4
+
+- Add some useful badges [#27](https://github.com/SummerWish/express-minify/pull/27)
+- Update dependencies
+- Support JSON minify [#25](https://github.com/SummerWish/express-minify/pull/25)
+- Start to use travis-ci online build testing
+
 0.1.3
 
 - Update dependencies [#19](https://github.com/breeswish/express-minify/issues/19) [#20](https://github.com/breeswish/express-minify/issues/20)
