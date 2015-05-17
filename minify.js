@@ -6,6 +6,7 @@ var onHeaders = require('on-headers');
 
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
+JSON.minify = require("node-json-minify");
 var sass;
 var less;
 var stylus;
@@ -39,6 +40,10 @@ function minifyIt(type, options, content, callback) {
                     result = uglifyjs.minify(result, opt).code;
                 }
             } catch(err) {
+                try {
+                    result = JSON.minify(content);
+                } catch(err) {
+                }
             }
             callback(result);
             break;
