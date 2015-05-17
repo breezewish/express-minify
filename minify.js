@@ -260,7 +260,7 @@ module.exports = function express_minify(options) {
                 res.setHeader('Content-Type', 'text/css');
             } else if (coffee_match.test(contentType)) {
                 type = TYPE_COFFEE;
-                res.setHeader('Content-Type', 'text/javascript');
+                res.setHeader('Content-Type', 'application/javascript');
             } else if (js_match.test(contentType)) {
                 type = TYPE_JS;
             } else if (css_match.test(contentType)) {
