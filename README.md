@@ -1,6 +1,8 @@
 express-minify
 ==============
-[![npm version](https://img.shields.io/npm/v/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![npm download counter](https://img.shields.io/npm/dm/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![Dependency Status](https://david-dm.org/SummerWish/express-minify.svg)](https://david-dm.org/SummerWish/express-minify) [![devDependency Status](https://david-dm.org/SummerWish/express-minify/dev-status.svg)](https://david-dm.org/SummerWish/express-minify#info=devDependencies)
+[![Build Status](https://travis-ci.org/SummerWish/express-minify.svg?branch=master)](https://travis-ci.org/SummerWish/express-minify) [![npm version](https://img.shields.io/npm/v/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![npm download counter](https://img.shields.io/npm/dm/express-minify.svg)](https://www.npmjs.com/package/express-minify)
+
+[![Dependency Status](https://david-dm.org/SummerWish/express-minify.svg)](https://david-dm.org/SummerWish/express-minify) [![devDependency Status](https://david-dm.org/SummerWish/express-minify/dev-status.svg)](https://david-dm.org/SummerWish/express-minify#info=devDependencies)
 
 [![NodeICO](https://nodei.co/npm/express-minify.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/express-minify)
 
