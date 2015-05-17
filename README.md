@@ -1,6 +1,6 @@
 express-minify
 ==============
-[![Dependency Status](https://david-dm.org/SummerWish/express-minify.svg)](https://david-dm.org/SummerWish/express-minify) [![devDependency Status](https://david-dm.org/SummerWish/express-minify/dev-status.svg)](https://david-dm.org/SummerWish/express-minify#info=devDependencies)
+[![npm version](https://img.shields.io/npm/v/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![Dependency Status](https://david-dm.org/SummerWish/express-minify.svg)](https://david-dm.org/SummerWish/express-minify) [![devDependency Status](https://david-dm.org/SummerWish/express-minify/dev-status.svg)](https://david-dm.org/SummerWish/express-minify#info=devDependencies)
 
 express-minify is an express middleware to automatically minify and cache your javascript and css files.
 
