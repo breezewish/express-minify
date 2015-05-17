@@ -37,6 +37,7 @@ app.use(minify(
     less_match: /less/,
     stylus_match: /stylus/,
     coffee_match: /coffeescript/,
+    json_match: /json/,
     cache: false
 }));
 ```
@@ -64,6 +65,10 @@ app.use(minify(
 - `coffee_match`: `RegExp`
   
   matches CoffeeScript content-type.
+
+- `json_match`: `RegExp`
+  
+  matches JSON content-type.
 
 - `cache`: `String | false`
   

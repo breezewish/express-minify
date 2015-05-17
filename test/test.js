@@ -14,6 +14,7 @@ var sass = require('node-sass');
 var less = require('less');
 var stylus = require('stylus');
 var coffee = require('coffee-script');
+JSON.minify = require("node-json-minify");
 
 var expectation = {
   'js': [
@@ -35,6 +36,9 @@ var expectation = {
   ],
   'coffee': [
     {src: 'square = (x) -> x * x'}
+  ],
+  'json': [
+    {src: '{  "name" : "express-minify" , "author" : "Breezewish" , "description" : "An express middleware to automatically minify and cache your javascript and css files."}'}
   ]
 };
 
@@ -44,7 +48,8 @@ var header = {
   'sass': 'text/x-scss',
   'less': 'text/less',
   'stylus': 'text/stylus',
-  'coffee': 'text/coffeescript'
+  'coffee': 'text/coffeescript',
+  'json': 'application/json'
 };
 
 describe('minify()', function() {
@@ -261,6 +266,13 @@ function init(callback) {
     callback({
       processed: content,
       minified: uglifyjs.minify(content, {fromString: true}).code
+    });
+  }
+
+  minifyFunc.json = function(content, callback) {
+    callback({
+      processed: content,
+      minified: JSON.minify(content)
     });
   }
 

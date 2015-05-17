@@ -21,6 +21,7 @@ var TYPE_SASS = 3;
 var TYPE_LESS = 4;
 var TYPE_STYLUS = 5;
 var TYPE_COFFEE = 6;
+var TYPE_JSON = 7;
 
 function precompileError(err, type) {
     return JSON.stringify(err);
@@ -40,10 +41,6 @@ function minifyIt(type, options, content, callback) {
                     result = uglifyjs.minify(result, opt).code;
                 }
             } catch(err) {
-                try {
-                    result = JSON.minify(content);
-                } catch(err) {
-                }
             }
             callback(result);
             break;
@@ -134,6 +131,16 @@ function minifyIt(type, options, content, callback) {
             }
             callback(result);
             break;
+        case TYPE_JSON:
+            var result = content;
+            try {
+                if (!options.noMinify) {
+                    result = JSON.minify(content);
+                }
+            } catch(err) {
+            }
+            callback(result);
+            break;
         default:
             callback(content);
             break;
@@ -205,6 +212,7 @@ module.exports = function express_minify(options) {
     var less_match = options.less_match || /less/;
     var stylus_match = options.stylus_match || /stylus/;
     var coffee_match = options.coffee_match || /coffeescript/;
+    var json_match = options.json_match || /json/;
     var cache = options.cache || false;
 
     var cache_get = cacheGetMem;
@@ -266,6 +274,8 @@ module.exports = function express_minify(options) {
             } else if (coffee_match.test(contentType)) {
                 type = TYPE_COFFEE;
                 res.setHeader('Content-Type', 'application/javascript');
+            } else if (json_match.test(contentType)) {
+                type = TYPE_JSON;
             } else if (js_match.test(contentType)) {
                 type = TYPE_JS;
             } else if (css_match.test(contentType)) {
