@@ -14,7 +14,6 @@ var sass = require('node-sass');
 var less = require('less');
 var stylus = require('stylus');
 var coffee = require('coffee-script');
-JSON.minify = require("node-json-minify");
 
 var expectation = {
   'js': [
@@ -272,7 +271,7 @@ function init(callback) {
   minifyFunc.json = function(content, callback) {
     callback({
       processed: content,
-      minified: JSON.minify(content)
+      minified: JSON.stringify(JSON.parse(content))
     });
   }
 

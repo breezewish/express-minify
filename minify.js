@@ -6,7 +6,6 @@ var onHeaders = require('on-headers');
 
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
-var jsonMinify = require("node-json-minify");
 var sass;
 var less;
 var stylus;
@@ -135,7 +134,7 @@ function minifyIt(type, options, content, callback) {
     result = content;
     try {
       if (!options.noMinify) {
-        result = jsonMinify(content);
+        result = JSON.stringify(JSON.parse(content));
       }
     } catch (ignore) {
     }
