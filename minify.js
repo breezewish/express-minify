@@ -275,7 +275,7 @@ module.exports = function express_minify(options) {
         res.setHeader('Content-Type', 'text/css');
       } else if (coffee_match.test(contentType)) {
         type = TYPE_COFFEE;
-        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Content-Type', 'text/javascript');
       } else if (json_match.test(contentType)) {
         type = TYPE_JSON;
       } else if (js_match.test(contentType)) {
