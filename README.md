@@ -264,6 +264,10 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.1.5
+
+- Use JSON.stringify instead of node-json-minify, which has performance issue on large JSON files [#36](https://github.com/SummerWish/express-minify/pull/36)
+
 0.1.4
 
 - Add some useful badges [#27](https://github.com/SummerWish/express-minify/pull/27)
