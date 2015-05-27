@@ -2,7 +2,7 @@
   "name": "express-minify",
   "author": "Breezewish",
   "description": "An express middleware to automatically minify and cache your javascript and css files.",
-  "homepage": "https://github.com/breeswish/express-minify",
+  "homepage": "https://github.com/SummerWish/express-minify",
   "version": "0.1.5",
   "main": "minify.js",
   "keywords": [
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/breeswish/express-minify.git"
+    "url": "git://github.com/SummerWish/express-minify.git"
   },
   "dependencies": {
     "coffee-script": "^1.9.2",
