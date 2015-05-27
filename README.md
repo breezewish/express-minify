@@ -264,6 +264,11 @@ If you are using `cluster`, it is strongly recommended to enable file cache.
 
 # Change log
 
+0.1.5
+
+- Fix MIME for Js
+- Fix JSON minify performance issue
+
 0.1.4
 
 - Add some useful badges [#27](https://github.com/SummerWish/express-minify/pull/27)
