@@ -80,7 +80,7 @@ app.use(minify(
 
 - `res._skip`
 
-  Pass `true` to disable processing (minifying & precompiling).
+  Pass `true` to disable all kind of processing (minifying & precompiling).
 
 - `res._no_minify`
 
@@ -145,12 +145,28 @@ app.get('/response.js', function(req, res)
 
 ## Use file cache to improve performance:
 
+You can use a file cache instead of memory cache to cut memory usage.
+
+You need to specify a writable directory to store those cache file.
+
 ```javascript
 app.use(minify({cache: __dirname + '/cache'}));
 app.use(express.static(__dirname + '/static'));
 ```
 
 ## Parse and minify CoffeeScript/LESS/SASS/Stylus:
+
+`express-minify` can auto-compile your files and minify it without the need of specifying a source file directory. Currently it supports coffee-script, less, sass and stylus.
+
+To enable auto-compiling, first you need to install modules:
+
+```
+# you needn't install all of those modules
+# only choose what you want
+npm install coffee-script less node-sass stylus --save
+```
+
+Then you need to define MIME for those files:
 
 ```javascript
 // Test URL: http://localhost/auto_parsed_compressed.coffee
@@ -165,6 +181,8 @@ express.static.mime.define(
 
 app.use(minify());
 ```
+
+**Change since 0.1.6**: You need to manually install those modules to enable this feature. They are no longer pre-defined dependencies of this package.
 
 ## Specify UglifyJs options
 
@@ -256,13 +274,17 @@ app.get('/server_time.jsonp', function(req, res)
 });
 ```
 
-**WARNING**: DO NOT set `_no_minify` between `res.write` and `res.end`. You may lose data!
+**WARNING**: Do NOT set `_no_minify` between `res.write` and `res.end`.
 
 # Notice
 
-If you are using `cluster`, it is strongly recommended to enable file cache.
+If you are using `cluster`, it is strongly recommended to enable file cache. They can share file caches.
 
 # Change log
+
+0.1.6
+
+- Make `node-sass`, `stylus`, `less`, `coffee-script` dependency optional, now developers need to manually install those modules to enable compiling
 
 0.1.5
 

@@ -6,10 +6,34 @@ var onHeaders = require('on-headers');
 
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
-var sass;
-var less;
-var stylus;
-var coffee;
+
+var sass = null;
+try {
+  require.resolve('node-sass');
+} catch (ignore) {
+  sass = false;
+}
+
+var less = null;
+try {
+  require.resolve('less');
+} catch (ignore) {
+  less = false;
+}
+
+var stylus = null;
+try {
+  require.resolve('stylus');
+} catch (ignore) {
+  stylus = false;
+}
+
+var coffee = null;
+try {
+  require.resolve('coffee-script');
+} catch (ignore) {
+  coffee = false;
+}
 
 var memCache = {};
 
@@ -264,16 +288,20 @@ module.exports = function express_minify(options) {
         return;
       }
 
-      if (sass_match.test(contentType)) {
+      // for sass, less, stylus, coffee module:
+      //    null: module is found but not loaded
+      //    false: module not found
+      // so we should not process false values, but allow null values
+      if (sass !== false && sass_match.test(contentType)) {
         type = TYPE_SASS;
         res.setHeader('Content-Type', 'text/css');
-      } else if (less_match.test(contentType)) {
+      } else if (less !== false && less_match.test(contentType)) {
         type = TYPE_LESS;
         res.setHeader('Content-Type', 'text/css');
-      } else if (stylus_match.test(contentType)) {
+      } else if (stylus !== false && stylus_match.test(contentType)) {
         type = TYPE_STYLUS;
         res.setHeader('Content-Type', 'text/css');
-      } else if (coffee_match.test(contentType)) {
+      } else if (coffee !== false && coffee_match.test(contentType)) {
         type = TYPE_COFFEE;
         res.setHeader('Content-Type', 'text/javascript');
       } else if (json_match.test(contentType)) {
