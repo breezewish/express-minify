@@ -3,6 +3,7 @@
   "author": "Breezewish",
   "description": "An express middleware to automatically minify and cache your javascript and css files.",
   "homepage": "https://github.com/SummerWish/express-minify",
+  "license": "MIT",
   "version": "0.1.6",
   "main": "minify.js",
   "keywords": [
