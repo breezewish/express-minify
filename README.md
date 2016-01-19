@@ -405,7 +405,7 @@ If you are using `cluster`, it is strongly recommended to enable file cache. The
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Breezewish
+Copyright (c) 2016 Breezewish
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
