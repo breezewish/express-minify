@@ -21,7 +21,7 @@
   "dependencies": {
     "cssmin": "^0.4.3",
     "on-headers": "^1.0.0",
-    "uglify-js": "^2.4.24"
+    "uglify-js": "^2.6.1"
   },
   "devDependencies": {
     "async": "^1.4.2",
