@@ -4,6 +4,7 @@ var path = require('path');
 var crypto = require('crypto');
 var onHeaders = require('on-headers');
 
+// js minifier and css minifier
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
 
@@ -46,24 +47,24 @@ var TYPE_STYLUS = 5;
 var TYPE_COFFEE = 6;
 var TYPE_JSON = 7;
 
-function precompileError(err, type) {
+function precompileError(err, assetType) {
   return JSON.stringify(err);
 }
 
-function minifyIt(type, options, content, callback) {
+function minifyIt(assetType, options, minifiers, content, callback) {
   if (typeof callback !== 'function') {
     return;
   }
 
   var result, opt;
 
-  switch (type) {
+  switch (assetType) {
   case TYPE_JS:
     result = content;
     try {
       if (!options.noMinify) {
-        opt = extend({fromString: true}, options.uglify);
-        result = uglifyjs.minify(result, opt).code;
+        opt = extend({fromString: true}, options.uglifyOpt);
+        result = minifiers.uglifyJS.minify(result, opt).code;
       }
     } catch (ignore) {
     }
@@ -73,7 +74,7 @@ function minifyIt(type, options, content, callback) {
     result = content;
     try {
       if (!options.noMinify) {
-        result = cssmin(content);
+        result = minifiers.cssmin(content);
       }
     } catch (ignore) {
     }
@@ -89,12 +90,12 @@ function minifyIt(type, options, content, callback) {
       }).css.toString();
       try {
         if (!options.noMinify) {
-          result = cssmin(result);
+          result = minifiers.cssmin(result);
         }
       } catch (ignore) {
       }
     } catch (err) {
-      result = precompileError(err, type);
+      result = precompileError(err, assetType);
     }
     callback(result);
     break;
@@ -104,13 +105,13 @@ function minifyIt(type, options, content, callback) {
     }
     less.render(content, function (err, output) {
       if (err) {
-        callback(precompileError(err, type));
+        callback(precompileError(err, assetType));
         return;
       }
       result = output.css;
       try {
         if (!options.noMinify) {
-          result = cssmin(result);
+          result = minifiers.cssmin(result);
         }
       } catch (ignore) {
       }
@@ -123,13 +124,13 @@ function minifyIt(type, options, content, callback) {
     }
     stylus.render(content, function (err, css) {
       if (err) {
-        callback(precompileError(err, type));
+        callback(precompileError(err, assetType));
         return;
       }
       result = css;
       try {
         if (!options.noMinify) {
-          result = cssmin(result);
+          result = minifiers.cssmin(result);
         }
       } catch (ignore) {
       }
@@ -144,13 +145,13 @@ function minifyIt(type, options, content, callback) {
       result = coffee.compile(content);
       try {
         if (!options.noMinify) {
-          opt = extend({fromString: true}, options.uglify);
-          result = uglifyjs.minify(result, opt).code;
+          opt = extend({fromString: true}, options.uglifyOpt);
+          result = minifiers.uglifyJS.minify(result, opt).code;
         }
       } catch (ignore) {
       }
     } catch (err) {
-      result = precompileError(err, type);
+      result = precompileError(err, assetType);
     }
     callback(result);
     break;
@@ -233,6 +234,11 @@ function cachePutMem(hash, minized, callback) {
 
 module.exports = function express_minify(options) {
   options = options || {};
+
+  var minifierInstances = {
+    uglifyJS: options.uglifyJS || uglifyjs,
+    cssmin: options.cssmin || cssmin
+  };
 
   var js_match = options.js_match || /javascript/;
   var css_match = options.css_match || /css/;
@@ -394,18 +400,18 @@ module.exports = function express_minify(options) {
         uglifyOptions.compress = this._uglifyCompress;
       }
 
-      var reqOpt = {
-        uglify: uglifyOptions,
+      var minifyOptions = {
+        uglifyOpt: uglifyOptions,
         noMinify: this._no_minify
       };
 
-      var cacheKey = crypto.createHash('sha1').update(JSON.stringify(reqOpt) + buffer).digest('hex').toString();
+      var cacheKey = crypto.createHash('sha1').update(JSON.stringify(minifyOptions) + buffer).digest('hex').toString();
       var _this = this;
 
       cache_get(cacheKey, function (err, minized) {
         if (err) {
           // cache miss
-          minifyIt(type, reqOpt, buffer.toString(encoding), function (minized) {
+          minifyIt(type, minifyOptions, minifierInstances, buffer.toString(encoding), function (minized) {
             if (_this._no_cache) {
               // do not save cache for this response
               write.call(_this, minized, 'utf8');

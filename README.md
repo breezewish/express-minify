@@ -6,14 +6,9 @@ express-minify
 
 [![NodeICO](https://nodei.co/npm/express-minify.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/express-minify)
 
-express-minify is an express middleware to automatically minify and cache your javascript and css files.
+Automatically minify and cache your javascript and css files.
 
-It also supports LESS/SASS/Stylus/CoffeeScript compiling and minifying.
-
-# Note
-
-For better performance and more powerful features (eg: generate Javascript Maps), I recommend you to use [Grunt](http://gruntjs.com/) (The Javascript Task Runner)
-to complete these tasks such as minifying and LESS/SASS/Stylus/CoffeeScript compiling.
+It also supports [LESS/SASS/Stylus/CoffeeScript compiling and minifying](#parse-and-minify-coffeescriptlesssassstylus).
 
 # Installation
 
@@ -21,26 +16,27 @@ to complete these tasks such as minifying and LESS/SASS/Stylus/CoffeeScript comp
 npm install express-minify
 ```
 
-# Usage
+# Basic Usage
 
 ```javascript
 var minify = require('express-minify');
 app.use(minify());
 ```
 
-## Options
+## Default Options
 
 ```javascript
-app.use(minify(
-{
-    js_match: /javascript/,
-    css_match: /css/,
-    sass_match: /scss/,
-    less_match: /less/,
-    stylus_match: /stylus/,
-    coffee_match: /coffeescript/,
-    json_match: /json/,
-    cache: false
+app.use(minify({
+  js_match: /javascript/,
+  css_match: /css/,
+  sass_match: /scss/,
+  less_match: /less/,
+  stylus_match: /stylus/,
+  coffee_match: /coffeescript/,
+  json_match: /json/,
+  uglifyJS: undefined,
+  cssmin: undefined,
+  cache: false
 }));
 ```
 
@@ -71,6 +67,14 @@ app.use(minify(
 - `json_match`: `RegExp`
   
   matches JSON content-type.
+
+- `uglifyJS`: `Object`
+  
+  customize UglifyJS instance (`require('uglify-js')`).
+  
+- `cssmin`: `Object`
+
+  customize cssmin instance (`require('cssmin')`).
 
 - `cache`: `String | false`
   
@@ -113,7 +117,7 @@ app.use(minify());
 app.use(express.static(__dirname + '/static'));
 ```
 
-## Working with express-compression(gzip):
+## Working with express-compression (gzip):
 
 ```javascript
 app.use(compression());
@@ -145,7 +149,7 @@ app.get('/response.js', function(req, res)
 
 ## Use file cache to improve performance:
 
-You can use a file cache instead of memory cache to cut memory usage.
+You can use a file cache instead of the default memory cache to reduce memory usage.
 
 You need to specify a writable directory to store those cache file.
 
@@ -156,9 +160,9 @@ app.use(express.static(__dirname + '/static'));
 
 ## Parse and minify CoffeeScript/LESS/SASS/Stylus:
 
-`express-minify` can auto-compile your files and minify it without the need of specifying a source file directory. Currently it supports coffee-script, less, sass and stylus.
+`express-minify` can automatically compile your files and minify it without the need of specifying a source file directory. Currently it supports coffee-script, less, sass and stylus.
 
-To enable auto-compiling, first you need to install modules:
+To enable this feature, first of all you need to install those modules by yourself:
 
 ```
 # you needn't install all of those modules
@@ -182,7 +186,24 @@ express.static.mime.define(
 app.use(minify());
 ```
 
-**Change since 0.1.6**: You need to manually install those modules to enable this feature. They are no longer pre-defined dependencies of this package.
+**Notice**: Those modules are listed in `devDependencies` for testing purpose. If you don't manually add them to your project's `dependencies`, you may face errors when switching from npm dev install to npm production install because they are no longer installed by express-minify.
+
+**Change since 0.1.6**: You need to manually install those modules to enable this feature.
+
+## Customize UglifyJS/cssmin instance
+
+If you want to use your own UglifyJS/cssmin instance (for example, use a different branch to support ES6), you can pass them to the options.
+
+```javascript
+var myUglifyJS = require('uglify-js');
+var myCssmin = require('cssmin');
+app.use(minify({
+  uglifyJS: myUglifyJS,
+  cssmin: myCssmin,
+}));
+```
+
+Notice: You may need to clear file cache after switching to your own UglifyJS/cssmin instance because cache may be outdated.
 
 ## Specify UglifyJs options
 
