@@ -117,6 +117,44 @@ describe('minify()', function() {
   });
 
 
+  it('allow to customize UglifyJS instance', function(done) {
+    var content = 'js_test';
+    var expected = 'js_test_passed';
+    var myInstance = {
+      minify: function () {
+        return {code: expected}
+      }
+    };
+    var server = createServer([minify({
+      uglifyJS: myInstance
+    })], function(req, res) {
+      res.setHeader('Content-Type', 'text/javascript');
+      res.end(content);
+    });
+    request(server)
+    .get('/')
+    .expect(expected, done);
+  });
+
+
+  it('allow to customize cssmin instance', function(done) {
+    var content = 'css_test';
+    var expected = 'css_test_passed';
+    var myInstance = function () {
+      return expected;
+    };
+    var server = createServer([minify({
+      cssmin: myInstance
+    })], function(req, res) {
+      res.setHeader('Content-Type', 'text/css');
+      res.end(content);
+    });
+    request(server)
+    .get('/')
+    .expect(expected, done);
+  });
+
+
   for (var type in expectation) {
     (function(type) {
       expectation[type].forEach(function(test) {

@@ -303,6 +303,10 @@ If you are using `cluster`, it is strongly recommended to enable file cache. The
 
 # Change log
 
+0.1.7
+
+- Support customizing UglifyJS/cssmin instance
+
 0.1.6
 
 - Make `node-sass`, `stylus`, `less`, `coffee-script` dependency optional, now developers need to manually install those modules to enable compiling
