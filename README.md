@@ -83,7 +83,7 @@ app.use(minify({
 
 - `onerror`: `Function`
 
-  handle compiling error or minifying errors. You can determine what to respond when facing such errors. See [Customize onError behavior](#customize-onrrror-behavior) for details.
+  handle compiling error or minifying errors. You can determine what to respond when facing such errors. See [Customize onError behavior](#customize-onerror-behavior) for details.
 
 ## Per-Response Options
 
