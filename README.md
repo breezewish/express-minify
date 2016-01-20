@@ -36,7 +36,8 @@ app.use(minify({
   json_match: /json/,
   uglifyJS: undefined,
   cssmin: undefined,
-  cache: false
+  cache: false,
+  onerror: undefined,
 }));
 ```
 
@@ -79,6 +80,10 @@ app.use(minify({
 - `cache`: `String | false`
   
   the directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended).
+
+- `onerror`: `Function`
+
+  handle compiling error or minifying errors. You can determine what to respond when facing such errors. See [Customize onError behavior](#customize-onrrror-behavior) for details.
 
 ## Per-Response Options
 
@@ -189,6 +194,54 @@ app.use(minify());
 **Notice**: Those modules are listed in `devDependencies` for testing purpose. If you don't manually add them to your project's `dependencies`, you may face errors when switching from npm dev install to npm production install because they are no longer installed by express-minify.
 
 **Change since 0.1.6**: You need to manually install those modules to enable this feature.
+
+## Customize onError behavior
+
+Errors thrown by CoffeeScript/LESS/SASS/Stylus module are compiling errors and errors thrown by UglifyJS/cssmin/JSON module are minifying errors.
+
+The default behavior is to return the error message for compiling errors and return the original content for minifying errors.
+
+You can change this behavior or get notified about the error by providing `onerror` in options:
+
+```javascript
+var minify = require('express-minify');
+
+/*
+
+err: the Error object
+stage: "compile" or "minify"
+assetType: The type of the source code, can be one of
+  minify.Minifier.TYPE_TEXT
+  minify.Minifier.TYPE_JS
+  minify.Minifier.TYPE_CSS
+  minify.Minifier.TYPE_SASS
+  minify.Minifier.TYPE_LESS
+  minify.Minifier.TYPE_STYLUS
+  minify.Minifier.TYPE_COFFEE
+  minify.Minifier.TYPE_JSON
+minifyOptions: Minification options
+body: Source code (string)
+callback: (err, body) return the final result as string in this callback function.
+  If `err` is null, the final result will be cached.
+
+*/
+
+var myErrorHandler = function (err, stage, assetType, minifyOptions, body, callback) {
+  console.log(err);
+  // below is the default implementation
+  if (stage === 'compile') {
+    callback(err, JSON.stringify(err));
+    return;
+  }
+  callback(err, body);
+};
+
+app.use(minify({
+  onerror: myErrorHandler
+}));
+```
+
+You can also access the default implementation from `minify.Minifier.defaultErrorHandler`.
 
 ## Customize UglifyJS/cssmin instance
 
@@ -302,6 +355,11 @@ app.get('/server_time.jsonp', function(req, res)
 If you are using `cluster`, it is strongly recommended to enable file cache. They can share file caches.
 
 # Change log
+
+0.2.0
+
+- Support `onerror`
+- Minimum required NodeJs version changed to `0.12.0` for `fs.access`.
 
 0.1.7
 

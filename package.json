@@ -1,18 +1,18 @@
 {
   "name": "express-minify",
   "author": "Breezewish",
-  "description": "An express middleware to automatically minify and cache your javascript and css files.",
+  "description": "Automatically minify and cache your javascript and css files.",
   "homepage": "https://github.com/SummerWish/express-minify",
   "license": "MIT",
-  "version": "0.1.7",
-  "main": "minify.js",
+  "version": "0.2.0",
+  "main": "index.js",
   "keywords": [
     "uglify",
     "minify",
     "express"
   ],
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 0.12.0"
   },
   "repository": {
     "type": "git",

@@ -37,7 +37,7 @@ var expectation = {
     {src: 'square = (x) -> x * x'}
   ],
   'json': [
-    {src: '{  "name" : "express-minify" , "author" : "Breezewish" , "description" : "An express middleware to automatically minify and cache your javascript and css files."}'}
+    {src: '{  "name" : "express-minify" , "author" : "Breezewish" , "description" : "test string"}'}
   ]
 };
 
@@ -114,6 +114,23 @@ describe('minify()', function() {
     request(server)
     .get('/')
     .expect(content, done);
+  });
+
+
+  it('allow to customize error handling', function(done) {
+    var content = '/* this is a broken JavaScript!';
+    var expected = 'success!';
+    var server = createServer([minify({
+      onerror: function (err, stage, assetType, minifyOptions, body, callback) {
+        callback(null, expected);
+      }
+    })], function(req, res) {
+      res.setHeader('Content-Type', 'text/javascript');
+      res.end(content);
+    });
+    request(server)
+    .get('/')
+    .expect(expected, done);
   });
 
 
