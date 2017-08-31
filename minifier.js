@@ -52,7 +52,8 @@ Minifier.prototype.compileAndMinify = function (assetType, minifyOptions, body, 
     result = body;
     try {
       if (!minifyOptions.noMinify) {
-        result = self.uglifyJS.minify(result, minifyOptions.uglifyOpt).code;
+		opt = Object.assign({fromString: true}, minifyOptions.uglifyOpt);
+        result = self.uglifyJS.minify(result, opt).code;
       }
     } catch (err) {
       self.handleError(err, 'minify', assetType, minifyOptions, result, callback);
@@ -152,7 +153,8 @@ Minifier.prototype.compileAndMinify = function (assetType, minifyOptions, body, 
     }
     try {
       if (!minifyOptions.noMinify) {
-        result = self.uglifyJS.minify(result, minifyOptions.uglifyOpt).code;
+        opt = Object.assign({fromString: true}, minifyOptions.uglifyOpt);
+        result = self.uglifyJS.minify(result, opt).code;
       }
     } catch (err) {
       self.handleError(err, 'minify', assetType, minifyOptions, result, callback);
