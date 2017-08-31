@@ -1,5 +1,3 @@
-var extend = require('util')._extend;
-
 /**
  * Test whether a module exists.
  * null for exists, false for not-exists.
@@ -54,8 +52,7 @@ Minifier.prototype.compileAndMinify = function (assetType, minifyOptions, body, 
     result = body;
     try {
       if (!minifyOptions.noMinify) {
-        opt = extend({fromString: true}, minifyOptions.uglifyOpt);
-        result = self.uglifyJS.minify(result, opt).code;
+        result = self.uglifyJS.minify(result, minifyOptions.uglifyOpt).code;
       }
     } catch (err) {
       self.handleError(err, 'minify', assetType, minifyOptions, result, callback);
@@ -155,8 +152,7 @@ Minifier.prototype.compileAndMinify = function (assetType, minifyOptions, body, 
     }
     try {
       if (!minifyOptions.noMinify) {
-        opt = extend({fromString: true}, minifyOptions.uglifyOpt);
-        result = self.uglifyJS.minify(result, opt).code;
+        result = self.uglifyJS.minify(result, minifyOptions.uglifyOpt).code;
       }
     } catch (err) {
       self.handleError(err, 'minify', assetType, minifyOptions, result, callback);
