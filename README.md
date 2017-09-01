@@ -341,6 +341,7 @@ app.get('/server_time.jsonp', function(req, res)
 - Support options for CSS minifying
 - Support options for SASS and LESS compiling
 - Refine naming conversion
+- Minimum required NodeJs version changed to `4.0.0` for `Object.assign`.
 
 
 0.2.0
