@@ -1,14 +1,14 @@
 express-minify
 ==============
-[![Build Status](https://travis-ci.org/SummerWish/express-minify.svg?branch=master)](https://travis-ci.org/SummerWish/express-minify) [![npm version](https://img.shields.io/npm/v/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![npm download counter](https://img.shields.io/npm/dm/express-minify.svg)](https://www.npmjs.com/package/express-minify)
 
-[![Dependency Status](https://david-dm.org/SummerWish/express-minify.svg)](https://david-dm.org/SummerWish/express-minify) [![devDependency Status](https://david-dm.org/SummerWish/express-minify/dev-status.svg)](https://david-dm.org/SummerWish/express-minify#info=devDependencies)
+Automatically minify (and cache) your JavaScript, CSS and JSON responses without pain.
+It also supports LESS/SASS/Stylus/CoffeeScript compiling and minifying.
+
+[![Build Status](https://travis-ci.org/breeswish/express-minify.svg?branch=master)](https://travis-ci.org/breeswish/express-minify) [![npm version](https://img.shields.io/npm/v/express-minify.svg)](https://www.npmjs.com/package/express-minify) [![npm download counter](https://img.shields.io/npm/dm/express-minify.svg)](https://www.npmjs.com/package/express-minify)
+
+[![Dependency Status](https://david-dm.org/breeswish/express-minify.svg)](https://david-dm.org/breeswish/express-minify) [![devDependency Status](https://david-dm.org/breeswish/express-minify/dev-status.svg)](https://david-dm.org/breeswish/express-minify#info=devDependencies)
 
 [![NodeICO](https://nodei.co/npm/express-minify.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/express-minify)
-
-Automatically minify and cache your javascript and css files.
-
-It also supports [LESS/SASS/Stylus/CoffeeScript compiling and minifying](#compile-and-minify-coffeescriptlesssassstylus).
 
 # Installation
 
@@ -25,7 +25,7 @@ var minify = require('express-minify');
 app.use(minify());
 ```
 
-It's very easy and elegant to integrate express-minify with [express.static](http://expressjs.com/en/api.html#express.static) and [compression](https://github.com/expressjs/compression).
+It's very easy and elegant to integrate express-minify with [express.static](http://expressjs.com/en/api.html#express.static) and [compression](https://github.com/expressjs/compression):
 
 ```javascript
 app.use(compression());
@@ -35,103 +35,102 @@ app.use(express.static(__dirname + '/static'));
 
 Note that the order of the middlewares is important. In the example above, we want to: serve static files → for JS & CSS: minify → GZip → send to user, so we have such orders.
 
-## Default Options
+## Options
+
+Default:
 
 ```javascript
 app.use(minify({
   cache: false,
-  uglifyJS: undefined,
-  cssmin: undefined,
-  onerror: undefined,
-  js_match: /javascript/,
-  css_match: /css/,
-  sass_match: /scss/,
-  less_match: /less/,
-  stylus_match: /stylus/,
-  coffee_match: /coffeescript/,
-  json_match: /json/,
+  uglifyJsModule: null,
+  errorHandler: null,
+  jsMatch: /javascript/,
+  cssMatch: /css/,
+  jsonMatch: /json/,
+  sassMatch: /scss/,
+  lessMatch: /less/,
+  stylusMatch: /stylus/,
+  coffeeScriptMatch: /coffeescript/,
 }));
 ```
 
 - `cache`: `String | false`
-  
-  The directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended). If you want to disable the cache, see [Disable minifying or caching for a response](#disable-minifying-or-caching-for-a-response).
 
-- `uglifyJS`: `Object`
-  
-  Customize UglifyJS instance (`require('uglify-js')`).
-  
-- `cssmin`: `Object`
+  The directory for cache storage (must be writeable). Pass `false` to cache in the memory (not recommended). If you want to disable cache for specific response, see [Disable Minifying or Caching for Specific Response](#disable-minifying-or-caching-for-specific-response).
 
-  Customize cssmin instance (`require('cssmin')`).
+- `uglifyJsModule`: `Object`
 
-- `onerror`: `Function`
+  Customize [UglifyJS](https://github.com/mishoo/UglifyJS2) (>= 3) module. If not specified, it will be `require('uglify-js')`. Example: [Use Uglify-ES](#use-uglify-es).
 
-  Handle compiling errors or minifying errors. You can determine what to respond when facing such errors. See [Customize onError behavior](#customize-onerror-behavior).
+- `errorHandler`: `Function(errorInfo, callback)`
 
-- `js_match`: `RegExp`
-  
-  Matches JavaScript content-type.
+  Function to handle compiling and minifying errors. You can determine what to respond for specific kind of error. See [Customize Error Behavior](#customize-error-behavior).
 
-- `css_match`: `RegExp`
-  
-  Matches CSS content-type.
+- `jsMatch`: `RegExp | false`
 
-- `sass_match`: `RegExp`
-  
-  Matches SASS content-type.
+  Matches JavaScript content-type. Pass `false` to disable handling this kind of content.
 
-- `less_match`: `RegExp`
-  
-  matches LESS content-type.
+- `cssMatch`: `RegExp | false`
 
-- `stylus_match`: `RegExp`
-  
-  Matches Stylus content-type.
+  Matches CSS content-type. Pass `false` to disable handling this kind of content.
 
-- `coffee_match`: `RegExp`
-  
-  Matches CoffeeScript content-type.
+- `jsonMatch`: `RegExp | false`
 
-- `json_match`: `RegExp`
-  
-  Matches JSON content-type.
+  Matches JSON content-type. Pass `false` to disable handling this kind of content.
+
+- `sassMatch`: `RegExp | false`
+
+  Matches SASS content-type. Pass `false` to disable handling this kind of content.
+
+- `lessMatch`: `RegExp | false`
+
+  Matches LESS content-type. Pass `false` to disable handling this kind of content.
+
+- `stylusMatch`: `RegExp | false`
+
+  Matches Stylus content-type. Pass `false` to disable handling this kind of content.
+
+- `coffeeScriptMatch`: `RegExp | false`
+
+  Matches CoffeeScript content-type. Pass `false` to disable handling this kind of content.
 
 ## Per-response Options
 
-Those options only applied to the specified response.
+Options below can be supplied for specific response:
 
-- `res._skip`
+- `response.minifyOptions.enabled`: `boolean`
 
-  Pass `true` to disable all kind of processing: no compiling, no minifying.
+  Pass `false` to disable all kind of processing for this response: no compiling, no minifying.
 
-- `res._no_minify`
+- `response.minifyOptions.minify`: `boolean`
 
-  Pass `true` to disable minifying, suitable for already-minified contents. [example](#disable-minifying-or-caching-for-a-response)
+  Pass `false` to disable minifying (JS, CSS and JSON) for this response, suitable for already-minified contents: [example](#disable-minifying-or-caching-for-a-response).
 
-- `res._no_cache`
+- `response.minifyOptions.cache`: `boolean`
 
-  Pass `true` to disable caching the response data, suitable for dynamic contents. [example](#disable-minifying-or-caching-for-a-response)
+  Pass `false` to disable caching the processed response data, suitable for dynamic contents: [example](#disable-minifying-or-caching-for-a-response).
 
-### UglifyJs Options
+- `response.minifyOptions.js`: `Object`
 
-- `res._uglifyMangle`
+  Set [UglifyJS options](https://github.com/mishoo/UglifyJS2#minify-options). You may want to disable mangling or compressing for specific response (e.g. AngularJS) via this option: [example](#specify-uglifyjs-options).
 
-  Pass `false` to disable mangling names. [example](#specify-uglifyjs-options)
+- `response.minifyOptions.css`: `Object`
 
-- `res._uglifyOutput`
+  Set [clean-css constructor options](https://github.com/jakubpawlowicz/clean-css#constructor-options).
 
-  Pass an object if you wish to specify additional UglifyJS [output options](http://lisperator.net/uglifyjs/codegen). [example](#specify-uglifyjs-options)
+- `response.minifyOptions.sass`: `Object`
 
-- `res._uglifyCompress`
+  Set [node-sass render options](https://github.com/sass/node-sass#options).
 
-  Pass an object to specify custom UglifyJS [compressor options](http://lisperator.net/uglifyjs/compress) (pass `false` to skip).
+- `response.minifyOptions.less`: `Object`
+
+  Set [less render options](http://lesscss.org/#using-less-configuration).
 
 # Examples
 
-## File Cache
+## Enable File Cache
 
-In default, express-minify use memory cache. You can change to using file cache:
+By default, express-minify uses memory cache. You can change to file cache:
 
 ```javascript
 app.use(minify({cache: __dirname + '/cache'}));
@@ -139,13 +138,12 @@ app.use(minify({cache: __dirname + '/cache'}));
 
 ## Compile and Minify CoffeeScript/LESS/SASS/Stylus
 
-`express-minify` can automatically compile your files and minify it without the need of specifying a source file directory. Currently it supports coffee-script, less, sass and stylus.
+express-minify can automatically compile your files and minify it without the need of specifying a source file directory. Currently it supports CoffeeScript, SASS, LESS and Stylus.
 
 To enable this feature, first of all you need to install those modules by yourself:
 
-```
-# you needn't install all of those modules
-# only choose what you want
+```bash
+# You needn't install all of these. Only choose what you need.
 npm install coffee-script less node-sass stylus --save
 ```
 
@@ -156,204 +154,194 @@ Then you need to define MIME for those files:
 
 express.static.mime.define(
 {
-    'text/coffeescript':  ['coffee'],
-    'text/less':          ['less'],
-    'text/x-scss':        ['scss'],
-    'text/stylus':        ['styl']
+  'text/coffeescript':  ['coffee'],
+  'text/less':          ['less'],
+  'text/x-scss':        ['scss'],
+  'text/stylus':        ['styl']
 });
 
 app.use(minify());
 ```
 
-Done!
+## Customize Error Behavior
 
-**Notice**: Those modules are listed in `devDependencies` for testing purpose. If you don't manually add them to your project's `dependencies`, you may face errors when switching from npm dev install to npm production install because they are no longer installed by express-minify.
+Errors may thrown at the compiling stage (for CoffeeScript/LESS/SASS/Stylus) or at the minifying stage (for JSON/UglifyJS/CleanCSS). The default behavior is returning the error message for compiling errors and returning original content for minifying errors.
 
-## Customize onError Behavior
-
-Errors thrown by CoffeeScript/LESS/SASS/Stylus module are compiling errors and errors thrown by UglifyJS/cssmin/JSON module are minifying errors.
-
-The default behavior is to return the error message for compiling errors and return the original content for minifying errors.
-
-You can change this behavior or get notified about the error by providing `onerror` in options:
+You can customize this behavior or get notified about the error by providing `errorHandler` in options:
 
 ```javascript
 var minify = require('express-minify');
 
-/*
-
-err: the Error object
-stage: "compile" or "minify"
-assetType: The type of the source code, can be one of
-  minify.Minifier.TYPE_TEXT
-  minify.Minifier.TYPE_JS
-  minify.Minifier.TYPE_CSS
-  minify.Minifier.TYPE_SASS
-  minify.Minifier.TYPE_LESS
-  minify.Minifier.TYPE_STYLUS
-  minify.Minifier.TYPE_COFFEE
-  minify.Minifier.TYPE_JSON
-minifyOptions: Minification options
-body: Source code (string)
-callback: (err, body) return the final result as string in this callback function.
-  If `err` is null, the final result will be cached.
-
-*/
-
-var myErrorHandler = function (err, stage, assetType, minifyOptions, body, callback) {
-  console.log(err);
-  // below is the default implementation
-  if (stage === 'compile') {
-    callback(err, JSON.stringify(err));
+var myErrorHandler = function (errorInfo, callback) {
+  console.log(errorInfo);
+  // below is the default implementation (minify.Minifier.defaultErrorHandler)
+  if (errorInfo.stage === 'compile') {
+    callback(errorInfo.error, JSON.stringify(errorInfo.error));
     return;
   }
-  callback(err, body);
+  callback(errorInfo.error, errorInfo.body);
 };
 
-app.use(minify({
-  onerror: myErrorHandler
-}));
+app.use(minify({ errorHandler: myErrorHandler }));
 ```
 
-You can also access the default implementation from `minify.Minifier.defaultErrorHandler`.
+The structure of `errorInfo` is:
 
-## Customize UglifyJS/cssmin Instance
+- `stage`: One of `["compile", "minify"]`
 
-If you want to use your own UglifyJS/cssmin instance (for example, use a different branch to support ES6), you can pass them to the options.
+  The stage when error is thrown.
+
+- `body`: `String`
+
+  The content to compile or minify, which causes the error of course.
+  If there are errors when minifying the compiled source, `body` will be the compiled source.
+
+- `assetType`: One of `["js", "css", "json", "coffee", "sass", "less", "stylus"]`
+
+  The type of the original content.
+
+- `options`: `Object`
+
+  The options you supplied via `response.minifyOptions`.
+
+- `error`: `Error`
+
+  The error thrown by the corresponding processor.
+
+## Use Uglify-ES
+
+You can pass the [uglify-es](https://www.npmjs.com/package/uglify-es) module in options to replace the built-in UglifyJS 3 module.
 
 ```javascript
-var myUglifyJS = require('uglify-js');
-var myCssmin = require('cssmin');
+var uglifyEs = require('uglify-es');
 app.use(minify({
-  uglifyJS: myUglifyJS,
-  cssmin: myCssmin,
+  uglifyJsModule: uglifyEs,
 }));
 ```
 
-Notice: You may need to clear file cache after switching to your own UglifyJS/cssmin instance because cache may be outdated.
+Remember to invalidate file caches after switching a UglifyJS module. They won't be invalidated automatically.
 
-## Specify UglifyJs Options
+## Specify UglifyJS Options
 
-`response._uglifyMangle`: pass false to skip mangling names.
-
-Example: Disable mangle for AngularJs.
+### Example 1: Disable Mangling for AngularJS Source Files
 
 ```javascript
 app.use(function(req, res, next)
 {
-    // do not mangle -angular.js files
-    if (/-angular\.js$/.test(req.url)) {
-        res._uglifyMangle = true;
-    }
-    next();
+  // do not mangle -angular.js files
+  if (/-angular\.js$/.test(req.url)) {
+    res.minifyOptions = res.minifyOptions || {};
+    res.minifyOptions.js = { mangle: true };
+  }
+  next();
 });
 app.use(minify());
 ```
 
-`response._uglifyOutput`: specify UglifyJs additional [output options](http://lisperator.net/uglifyjs/codegen).
-
-Example: Preserve comments for specific files.
+### Example 2: Preserve Comments for Specific JavaScript Files
 
 ```javascript
 app.use(function(req, res, next)
 {
-    if (/\.(user|meta)\.js$/.test(req.url)) {
-        res._uglifyOutput = {
-            comments: true
-        };
-    }
-    next();
+  if (/\.(user|meta)\.js$/.test(req.url)) {
+    res.minifyOptions = res.minifyOptions || {};
+    res.minifyOptions.js = { output: { comments: true } };
+  }
+  next();
 });
 ```
 
-`response._uglifyCompress`: specify UglifyJs custom [compressor options](http://lisperator.net/uglifyjs/compress).
+## Dynamic Response
 
-## Process Dynamic Response
-
-express-minify is able to handle all kind of responses, such as non-static responses.
+express-minify is able to handle all kind of responses, including dynamic responses.
 
 ```javascript
-var responseJS = 
-    "(function(window, undefined)\n" +
-    "{\n" +
-    "\n" +
-    "    var hello = 'hello';\n" +
-    "\n" +
-    "    var world = 'world';\n" +
-    "\n" +
-    "    alert(hello + world);\n" +
-    "\n" +
-    "})(window);"
-
+var responseJS =
+  "(function(window, undefined)\n" +
+  "{\n" +
+  "\n" +
+  "    var hello = 'hello';\n" +
+  "\n" +
+  "    var world = 'world';\n" +
+  "\n" +
+  "    alert(hello + world);\n" +
+  "\n" +
+  "})(window);"
 app.use(minify());
 app.get('/response.js', function(req, res)
 {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.end(responseJS);
+  res.setHeader('Content-Type', 'application/javascript');
+  res.end(responseJS);
 });
 ```
 
-## Disable Minifying or Caching for a Response
+## Disable Minifying or Caching for Specific Response
 
-If you don't want to minify a specific response, just use `response._no_minify = true`.
+If you don't want to minify a specific response, just set `response.minifyOptions.minify = false`.
 
-If you want to minify a response but don't want to cache it (for example, dynamic response data), use: `response._no_cache = true`.
+If you want to minify a response but don't want to cache it (for example, dynamic response data), set `response.minifyOptions.cache = false`.
 
-Example:
+### Example 1. Disable Minification for Minified Assets
 
 ```javascript
 app.use(function(req, res, next)
 {
-    // for all *.min.css or *.min.js, do not minify it
-    if (/\.min\.(css|js)$/.test(req.url)) {
-        res._no_minify = true;
-    }
-    next();
+  if (/\.min\.(css|js)$/.test(req.url)) {
+    res.minifyOptions = res.minifyOptions || {};
+    res.minifyOptions.minify = false;
+  }
+  next();
 });
 app.use(minify());
 ```
 
-Yet another example:
+### Example 2. Disable Caching for Dynamic Content
 
 ```javascript
 app.use(minify());
 app.get('/server_time_min.jsonp', function(req, res)
 {
-    var obj = {
-        'ok': true,
-        'data': {
-            'timestamp': new Date().getTime()
-        }
-    };
+  var obj = {
+    'ok': true,
+    'data': {
+      'timestamp': new Date().getTime(),
+    },
+  };
 
-    // minify this response, but do not cache it
-    res._no_cache = true;
-    res.setHeader('Content-Type', 'application/javascript');
-    res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
+  // minify this response, but do not cache it
+  res.minifyOptions = res.minifyOptions || {};
+  res.minifyOptions.cache = false;
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
 });
+
 app.get('/server_time.jsonp', function(req, res)
 {
-    var obj = {
-        'ok': true,
-        'data': {
-            'timestamp': new Date().getTime()
-        }
-    };
+  var obj = {
+    'ok': true,
+    'data': {
+      'timestamp': new Date().getTime(),
+    },
+  };
 
-    // do not minify this response
-    res._no_minify = true;
-    res.setHeader('Content-Type', 'application/javascript');
-    res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
+  // do not minify (and do not cache) this response
+  res.minifyOptions = res.minifyOptions || {};
+  res.minifyOptions.minify = false;
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send("callback(" + JSON.stringify(obj, null, 4) + ");");
 });
 ```
 
-**WARNING**: Do NOT set `_no_minify` between `res.write` and `res.end`.
-
-# Note
-
-If you are using `cluster`, it is strongly recommended to enable file cache. They can share file caches.
-
 # Change Log
+
+1.0.0
+
+- Replace cssmin with [clean-css](https://github.com/jakubpawlowicz/clean-css)
+- Upgrade to use Uglify-JS 3 API
+- Support options for CSS minifying
+- Support options for SASS and LESS compiling
+- Refine naming conversion
+
 
 0.2.0
 
@@ -462,7 +450,7 @@ If you are using `cluster`, it is strongly recommended to enable file cache. The
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Breezewish
+Copyright (c) 2017 Breezewish
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

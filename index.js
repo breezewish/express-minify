@@ -10,36 +10,37 @@ Factory.Minifier = require('./minifier.js');
 
 module.exports = Factory;
 
-var createMiddleware = function express_minify(options) {
-  options = options || {};
+var createMiddleware = function expressMinify(opt) {
+  var options = Object.assign({
+    cache: false,
+    uglifyJsModule: null,
+    errorHandler: null,
+    jsMatch: /javascript/,
+    cssMatch: /css/,
+    jsonMatch: /json/,
+    sassMatch: /scss/,
+    lessMatch: /less/,
+    stylusMatch: /stylus/,
+    coffeeScriptMatch: /coffeescript/,
+  }, opt);
 
-  var js_match = options.js_match || /javascript/;
-  var css_match = options.css_match || /css/;
-  var sass_match = options.sass_match || /scss/;
-  var less_match = options.less_match || /less/;
-  var stylus_match = options.stylus_match || /stylus/;
-  var coffee_match = options.coffee_match || /coffeescript/;
-  var json_match = options.json_match || /json/;
-
-  var cache = new Factory.Cache(options.cache || false);
-  var minifier = new Factory.Minifier(options.uglifyJS, options.cssmin, options.onerror);
+  var cache = new Factory.Cache(options.cache);
+  var minifier = new Factory.Minifier(options);
 
   return function express_minify_middleware(req, res, next) {
     var write = res.write;
     var end = res.end;
 
     var buf = null;
-    var type = Factory.Minifier.TYPE_TEXT;
+    var type = 'plain';
 
     onHeaders(res, function () {
       if (req.method === 'HEAD') {
         return;
       }
-
-      if (res._skip) {
+      if (res.minifyOptions && res.minifyOptions.enabled === false) {
         return;
       }
-
       var contentType = res.getHeader('Content-Type');
       if (contentType === undefined) {
         return;
@@ -49,31 +50,30 @@ var createMiddleware = function express_minify(options) {
       //    null: module is found but not loaded
       //    false: module not found
       // so we should not process false values, but allow null values
-      if (minifier.sass !== false && sass_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_SASS;
+      if (minifier.sassModule !== false && options.sassMatch && options.sassMatch.test(contentType)) {
+        type = 'sass';
         res.setHeader('Content-Type', 'text/css');
-      } else if (minifier.less !== false && less_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_LESS;
+      } else if (minifier.lessModule !== false && options.lessMatch && options.lessMatch.test(contentType)) {
+        type = 'less';
         res.setHeader('Content-Type', 'text/css');
-      } else if (minifier.stylus !== false && stylus_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_STYLUS;
+      } else if (minifier.stylusModule !== false && options.stylusMatch && options.stylusMatch.test(contentType)) {
+        type = 'stylus';
         res.setHeader('Content-Type', 'text/css');
-      } else if (minifier.coffee !== false && coffee_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_COFFEE;
+      } else if (minifier.coffeeModule !== false && options.coffeeScriptMatch && options.coffeeScriptMatch.test(contentType)) {
+        type = 'coffee';
         res.setHeader('Content-Type', 'text/javascript');
-      } else if (json_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_JSON;
-      } else if (js_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_JS;
-      } else if (css_match.test(contentType)) {
-        type = Factory.Minifier.TYPE_CSS;
+      } else if (options.jsonMatch && options.jsonMatch.test(contentType)) {
+        type = 'json';
+      } else if (options.jsMatch && options.jsMatch.test(contentType)) {
+        type = 'js';
+      } else if (options.cssMatch && options.cssMatch.test(contentType)) {
+        type = 'css';
       }
 
-      if (type === Factory.Minifier.TYPE_TEXT) {
+      if (type === 'plain') {
         return;
       }
-
-      if ((type === Factory.Minifier.TYPE_JS || type === Factory.Minifier.TYPE_CSS) && res._no_minify) {
+      if ((type === 'js' || type === 'css') && res.minifyOptions && res.minifyOptions.minify === false) {
         return;
       }
 
@@ -129,41 +129,20 @@ var createMiddleware = function express_minify(options) {
         return end.call(this, data, encoding);
       }
 
-      // TODO: implement hot-path optimization
       if (data) {
         this.write(data, encoding);
       }
 
       var buffer = Buffer.concat(buf);
-
-      // prepare uglify options
-      var uglifyOptions = {};
-      if (this._no_mangle) {
-        uglifyOptions.mangle = false;
-      }
-      if (this._uglifyMangle !== undefined) {
-        uglifyOptions.mangle = this._uglifyMangle;
-      }
-      if (this._uglifyOutput !== undefined) {
-        uglifyOptions.output = this._uglifyOutput;
-      }
-      if (this._uglifyCompress !== undefined) {
-        uglifyOptions.compress = this._uglifyCompress;
-      }
-
-      var minifyOptions = {
-        uglifyOpt: uglifyOptions,
-        noMinify: this._no_minify
-      };
-
-      var cacheKey = crypto.createHash('sha1').update(JSON.stringify(minifyOptions) + buffer).digest('hex').toString();
+      var minifyOptions = Object.assign({}, this.minifyOptions);
+      var cacheKey = crypto.createHash('sha256').update(JSON.stringify(minifyOptions) + buffer).digest('hex').toString();
       var self = this;
 
       cache.layer.get(cacheKey, function (err, minized) {
         if (err) {
           // cache miss
           minifier.compileAndMinify(type, minifyOptions, buffer.toString(encoding), function (err, minized) {
-            if (self._no_cache || err) {
+            if (minifyOptions.cache === false || err) {
               // do not cache the response body
               write.call(self, minized, 'utf8');
               end.call(self);
